@@ -110,6 +110,49 @@ impl Grid {
     pub fn iter_mut(&mut self) -> IterMut<'_> {
         IterMut::new(self)
     }
+
+    pub fn render_ascii(&self) {
+        let mut output = format!("+{}\n", "---+".repeat(self.cols));
+
+        for row in self.row_iter() {
+            let mut top = String::from("|");
+            let mut bottom = String::from("+");
+
+            for cell in row {
+                top.push_str("   ");
+                let east_boundary = if let Some(east) = cell.east {
+                    if cell.is_linked(east) {
+                        " "
+                    } else {
+                        "|"
+                    }
+                } else {
+                    "|"
+                };
+                top.push_str(east_boundary);
+
+                let south_boundary = if let Some(south) = cell.south {
+                    if cell.is_linked(south) {
+                        "   "
+                    } else {
+                        "---"
+                    }
+                } else {
+                    "---"
+                };
+                bottom.push_str(&south_boundary);
+                bottom.push('+');
+            }
+
+            output.push_str(&top);
+            output.push('\n');
+
+            output.push_str(&bottom);
+            output.push('\n');
+        }
+
+        println!("{}", output);
+    }
 }
 
 pub struct Iter<'a> {

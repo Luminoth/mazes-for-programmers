@@ -14,4 +14,8 @@ fn main() {
     println!("Running algorithm: {:?} ...", options.algorithm);
     let algorithm = options.algorithm.algorithm();
     algorithm.run(&mut grid);
+
+    println!();
+    grid.render_ascii();
+    println!();
 }

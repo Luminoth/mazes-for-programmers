@@ -39,8 +39,8 @@ impl Cell {
         }
     }
 
-    pub fn is_linked(&self, cell: &Cell) -> bool {
-        self.links.contains(&cell.handle())
+    pub fn is_linked(&self, cell: CellHandle) -> bool {
+        self.links.contains(&cell)
     }
 
     pub fn link(&mut self, cell: CellHandle) {
