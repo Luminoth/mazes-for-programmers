@@ -43,8 +43,8 @@ impl Cell {
         self.links.contains(&cell.handle())
     }
 
-    pub fn link(&mut self, cell: &Cell) {
-        self.links.insert(cell.handle());
+    pub fn link(&mut self, cell: CellHandle) {
+        self.links.insert(cell);
     }
 
     pub fn link_bidirectional(&mut self, cell: &mut Cell) {
@@ -52,8 +52,8 @@ impl Cell {
         cell.links.insert(self.handle());
     }
 
-    pub fn unlink(&mut self, cell: &Cell) {
-        self.links.remove(&cell.handle());
+    pub fn unlink(&mut self, cell: CellHandle) {
+        self.links.remove(&cell);
     }
 
     pub fn unlink_bidirectional(&mut self, cell: &mut Cell) {
