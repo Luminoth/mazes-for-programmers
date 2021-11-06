@@ -111,7 +111,7 @@ impl Grid {
         IterMut::new(self)
     }
 
-    pub fn link_cells(&mut self, a: CellHandle, b: CellHandle) {
+    pub(crate) fn link_cells(&mut self, a: CellHandle, b: CellHandle) {
         if let Some(a) = self.get_mut(a.row, a.col) {
             a.link(b);
         }
@@ -121,7 +121,8 @@ impl Grid {
         }
     }
 
-    pub fn unlink_cells(&mut self, a: CellHandle, b: CellHandle) {
+    #[allow(unused)]
+    pub(crate) fn unlink_cells(&mut self, a: CellHandle, b: CellHandle) {
         if let Some(a) = self.get_mut(a.row, a.col) {
             a.unlink(b);
         }
