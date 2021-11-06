@@ -1,18 +1,17 @@
 mod options;
 
-use options::{AlgorithmOption, Options};
+use options::Options;
 
-use core::algorithms::{Algorithm, BinaryTree};
+use core::algorithms::Algorithm;
 use core::Grid;
 
 fn main() {
     let options: Options = argh::from_env();
 
-    println!("Running algorithm: {:?}", options.algorithm);
-    let algorithm = match options.algorithm {
-        AlgorithmOption::BinaryTree(_) => BinaryTree::default(),
-    };
+    println!("Generating {}x{} grid ...", options.width, options.height);
+    let mut grid = Grid::new(options.width, options.height);
 
-    let mut grid = Grid::new(10, 10);
+    println!("Running algorithm: {:?} ...", options.algorithm);
+    let algorithm = options.algorithm.algorithm();
     algorithm.run(&mut grid);
 }

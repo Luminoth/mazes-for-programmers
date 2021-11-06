@@ -22,7 +22,7 @@ impl Algorithm for BinaryTree {
                 neighbors.push(east);
             }
 
-            if neighbors.len() < 1 {
+            if neighbors.is_empty() {
                 continue;
             }
 
