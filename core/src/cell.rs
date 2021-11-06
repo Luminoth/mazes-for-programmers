@@ -1,27 +1,29 @@
 use std::collections::HashSet;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct CellState {
+pub struct CellHandle {
     row: usize,
     col: usize,
 }
 
 #[derive(Debug)]
 pub struct Cell {
-    pub(crate) state: CellState,
+    pub row: usize,
+    pub col: usize,
 
-    pub(crate) north: Option<CellState>,
-    pub(crate) south: Option<CellState>,
-    pub(crate) east: Option<CellState>,
-    pub(crate) west: Option<CellState>,
+    pub(crate) north: Option<CellHandle>,
+    pub(crate) south: Option<CellHandle>,
+    pub(crate) east: Option<CellHandle>,
+    pub(crate) west: Option<CellHandle>,
 
-    links: HashSet<CellState>,
+    links: HashSet<CellHandle>,
 }
 
 impl Cell {
     pub fn new(row: usize, col: usize) -> Self {
         Self {
-            state: CellState { row, col },
+            row,
+            col,
             north: None,
             south: None,
             east: None,
@@ -30,25 +32,32 @@ impl Cell {
         }
     }
 
+    pub fn handle(&self) -> CellHandle {
+        CellHandle {
+            row: self.row,
+            col: self.col,
+        }
+    }
+
     pub fn is_linked(&self, cell: &Cell) -> bool {
-        self.links.contains(&cell.state)
+        self.links.contains(&cell.handle())
     }
 
     pub fn link(&mut self, cell: &Cell) {
-        self.links.insert(cell.state);
+        self.links.insert(cell.handle());
     }
 
     pub fn link_bidirectional(&mut self, cell: &mut Cell) {
-        self.links.insert(cell.state);
-        cell.links.insert(self.state);
+        self.links.insert(cell.handle());
+        cell.links.insert(self.handle());
     }
 
     pub fn unlink(&mut self, cell: &Cell) {
-        self.links.remove(&cell.state);
+        self.links.remove(&cell.handle());
     }
 
     pub fn unlink_bidirectional(&mut self, cell: &mut Cell) {
-        self.links.remove(&cell.state);
-        cell.links.remove(&self.state);
+        self.links.remove(&cell.handle());
+        cell.links.remove(&self.handle());
     }
 }
