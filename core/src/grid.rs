@@ -86,6 +86,15 @@ impl Grid {
     }
 }
 
+impl<'a> IntoIterator for &'a Grid {
+    type Item = &'a Cell;
+    type IntoIter = CellIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 pub struct CellIterator<'a> {
     grid: &'a Grid,
 
