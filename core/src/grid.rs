@@ -40,9 +40,20 @@ impl Grid {
     fn configure_cells(&mut self) {
         for row in 0..self.rows {
             for col in 0..self.cols {
-                let north = self.get(row - 1, col).map(|cell| cell.handle());
+                let north = if row > 0 {
+                    self.get(row - 1, col).map(|cell| cell.handle())
+                } else {
+                    None
+                };
+
                 let south = self.get(row + 1, col).map(|cell| cell.handle());
-                let west = self.get(row, col - 1).map(|cell| cell.handle());
+
+                let west = if col > 0 {
+                    self.get(row, col - 1).map(|cell| cell.handle())
+                } else {
+                    None
+                };
+
                 let east = self.get(row, col + 1).map(|cell| cell.handle());
 
                 let cell = self.get_mut(row, col);

@@ -1,11 +1,14 @@
 use crate::grid::Grid;
 
+use super::Algorithm;
+
 use rand::Rng;
 
+#[derive(Debug, Default)]
 pub struct BinaryTree;
 
-impl BinaryTree {
-    pub fn run(grid: &mut Grid) {
+impl Algorithm for BinaryTree {
+    fn run(&self, grid: &mut Grid) {
         for cell in grid {
             let mut rng = rand::thread_rng();
 
@@ -17,6 +20,10 @@ impl BinaryTree {
 
             if let Some(east) = cell.east {
                 neighbors.push(east);
+            }
+
+            if neighbors.len() < 1 {
+                continue;
             }
 
             let index = rng.gen_range(0..neighbors.len());
