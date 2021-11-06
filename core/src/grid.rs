@@ -111,6 +111,26 @@ impl Grid {
         IterMut::new(self)
     }
 
+    pub fn link_cells(&mut self, a: CellHandle, b: CellHandle) {
+        if let Some(a) = self.get_mut(a.row, a.col) {
+            a.link(b);
+        }
+
+        if let Some(b) = self.get_mut(b.row, b.col) {
+            b.link(a);
+        }
+    }
+
+    pub fn unlink_cells(&mut self, a: CellHandle, b: CellHandle) {
+        if let Some(a) = self.get_mut(a.row, a.col) {
+            a.unlink(b);
+        }
+
+        if let Some(b) = self.get_mut(b.row, b.col) {
+            b.unlink(a);
+        }
+    }
+
     pub fn render_ascii(&self) {
         let mut output = format!("+{}\n", "---+".repeat(self.cols));
 
@@ -140,7 +160,7 @@ impl Grid {
                 } else {
                     "---"
                 };
-                bottom.push_str(&south_boundary);
+                bottom.push_str(south_boundary);
                 bottom.push('+');
             }
 

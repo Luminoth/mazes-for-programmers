@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct CellHandle {
-    row: usize,
-    col: usize,
+    pub(crate) row: usize,
+    pub(crate) col: usize,
 }
 
 #[derive(Debug)]
@@ -47,17 +47,7 @@ impl Cell {
         self.links.insert(cell);
     }
 
-    pub fn link_bidirectional(&mut self, cell: &mut Cell) {
-        self.links.insert(cell.handle());
-        cell.links.insert(self.handle());
-    }
-
     pub fn unlink(&mut self, cell: CellHandle) {
         self.links.remove(&cell);
-    }
-
-    pub fn unlink_bidirectional(&mut self, cell: &mut Cell) {
-        self.links.remove(&cell.handle());
-        cell.links.remove(&self.handle());
     }
 }

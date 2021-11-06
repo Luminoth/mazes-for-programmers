@@ -9,7 +9,8 @@ pub struct BinaryTree;
 
 impl Algorithm for BinaryTree {
     fn run(&self, grid: &mut Grid) {
-        for cell in grid {
+        let mut links = Vec::default();
+        for cell in grid.iter_mut() {
             let mut rng = rand::thread_rng();
 
             let mut neighbors = Vec::new();
@@ -29,7 +30,11 @@ impl Algorithm for BinaryTree {
             let index = rng.gen_range(0..neighbors.len());
             let neighbor = neighbors[index];
 
-            cell.link(neighbor);
+            links.push((cell.handle(), neighbor));
+        }
+
+        for link in links {
+            grid.link_cells(link.0, link.1);
         }
     }
 }
