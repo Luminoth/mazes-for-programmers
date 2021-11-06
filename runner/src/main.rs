@@ -3,7 +3,6 @@ mod options;
 use tracing::{debug, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
-use core::algorithms::Algorithm;
 use core::Grid;
 
 use options::Options;

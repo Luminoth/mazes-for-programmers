@@ -1,17 +1,19 @@
 use argh::FromArgs;
 
-use core::algorithms::{Algorithm, BinaryTree};
+use core::algorithms::{Algorithm, BinaryTree, Sidewinder};
 
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand)]
 pub enum AlgorithmOption {
     BinaryTree(BinaryTreeAlgorithm),
+    Sidewinder(SidewinderAlgorithm),
 }
 
 impl AlgorithmOption {
-    pub fn algorithm(&self) -> impl Algorithm {
+    pub fn algorithm(&self) -> Box<dyn Algorithm> {
         match self {
-            AlgorithmOption::BinaryTree(_) => BinaryTree::default(),
+            AlgorithmOption::BinaryTree(_) => Box::new(BinaryTree::default()),
+            AlgorithmOption::Sidewinder(_) => Box::new(Sidewinder::default()),
         }
     }
 }
@@ -20,6 +22,11 @@ impl AlgorithmOption {
 /// Binary tree algorithm
 #[argh(subcommand, name = "binarytree")]
 pub struct BinaryTreeAlgorithm {}
+
+#[derive(FromArgs, PartialEq, Debug)]
+/// Binary tree algorithm
+#[argh(subcommand, name = "sidewinder")]
+pub struct SidewinderAlgorithm {}
 
 /// Maze algorithm runner
 #[derive(FromArgs, Debug)]
