@@ -23,7 +23,7 @@ fn main() -> anyhow::Result<()> {
     let options: Options = argh::from_env();
 
     info!("Generating {}x{} grid ...", options.width, options.height);
-    let mut grid = Grid::new(options.width, options.height);
+    let mut grid = Grid::new(options.height, options.width);
     debug!("{:?}\n", grid);
 
     info!("Running algorithm: {:?} ...", options.algorithm);
