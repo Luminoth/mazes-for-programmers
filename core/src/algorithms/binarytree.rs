@@ -27,6 +27,7 @@ impl Algorithm for BinaryTree {
                 continue;
             }
 
+            // pick a random N/E neighbor to link
             let index = rng.gen_range(0..neighbors.len());
             let neighbor = neighbors[index];
 

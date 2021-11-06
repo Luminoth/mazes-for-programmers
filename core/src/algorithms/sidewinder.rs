@@ -23,6 +23,8 @@ impl Algorithm for Sidewinder {
                 let at_eastern_boundary = cell.east.is_none();
                 let at_northern_boundary = cell.north.is_none();
 
+                // close out a run either at the eastern border
+                // or randomly within a row, except at the northern border
                 let should_close_out =
                     at_eastern_boundary || (!at_northern_boundary && rng.gen_range(0..=1) == 0);
 
