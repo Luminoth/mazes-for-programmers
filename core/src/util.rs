@@ -12,6 +12,7 @@ impl Color {
     }
 }
 
+/// Renders a horizontal line in the given data
 pub fn horizontal_line(
     mut data: impl AsMut<[u8]>,
     width: usize,
@@ -25,6 +26,7 @@ pub fn horizontal_line(
     }
 }
 
+/// Renders a vertical line in the given data
 pub fn vertical_line(
     mut data: impl AsMut<[u8]>,
     width: usize,

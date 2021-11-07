@@ -9,6 +9,7 @@ use crate::util::{horizontal_line, vertical_line, Color};
 use rand::Rng;
 //use tracing::debug;
 
+/// Grid-based maze data structure
 #[derive(Debug)]
 pub struct Grid {
     rows: usize,
@@ -25,13 +26,13 @@ impl Grid {
             grid: Vec::new(),
         };
 
-        grid.prepare_grid();
-        grid.configure_cells();
+        grid.init_grid();
+        grid.init_cells();
 
         grid
     }
 
-    fn prepare_grid(&mut self) {
+    fn init_grid(&mut self) {
         self.grid = Vec::with_capacity(self.rows);
         for row in 0..self.rows {
             let mut cells = Vec::with_capacity(self.cols);
@@ -42,7 +43,7 @@ impl Grid {
         }
     }
 
-    fn configure_cells(&mut self) {
+    fn init_cells(&mut self) {
         for row in 0..self.rows {
             for col in 0..self.cols {
                 let north = if row > 0 {
@@ -76,46 +77,56 @@ impl Grid {
         self.rows * self.cols
     }
 
+    /// Gets a reference to the given cell if it exists
     pub fn get(&self, row: usize, col: usize) -> Option<&Cell> {
         self.grid.get(row)?.get(col)
     }
 
+    /// Gets a mutable reference to the given cell if it exists
     pub fn get_mut(&mut self, row: usize, col: usize) -> Option<&mut Cell> {
         self.grid.get_mut(row)?.get_mut(col)
     }
 
-    pub fn get_random(&self) -> Option<&Cell> {
+    /// Gets a reference to a random cell
+    pub fn get_random(&self) -> &Cell {
         let mut rng = rand::thread_rng();
 
         let row = rng.gen_range(0..self.rows);
         let col = rng.gen_range(0..self.cols);
-        self.get(row, col)
+        self.get(row, col).unwrap()
     }
 
-    pub fn get_random_mut(&mut self) -> Option<&mut Cell> {
+    /// Gets a mutable reference to a random cell
+    pub fn get_random_mut(&mut self) -> &mut Cell {
         let mut rng = rand::thread_rng();
 
         let row = rng.gen_range(0..self.rows);
         let col = rng.gen_range(0..self.cols);
-        self.get_mut(row, col)
+        self.get_mut(row, col).unwrap()
     }
 
+    /// Returns an iterator over the grid rows
     pub fn row_iter(&self) -> std::slice::Iter<'_, Vec<Cell>> {
         self.grid.iter()
     }
 
+    /// Returns a mutable iterator over the grid rows
     pub fn row_iter_mut(&mut self) -> std::slice::IterMut<'_, Vec<Cell>> {
         self.grid.iter_mut()
     }
 
+    /// Returns an iterator over the grid cells
     pub fn iter(&self) -> Iter<'_> {
         Iter::new(self)
     }
 
+    /// Returns a mutable iterator over the grid cells
     pub fn iter_mut(&mut self) -> IterMut<'_> {
         IterMut::new(self)
     }
 
+    /// Links two cells bidirectionally
+    /// This creates a path between the cells
     pub(crate) fn link_cells(&mut self, a: CellHandle, b: CellHandle) {
         if let Some(a) = self.get_mut(a.row, a.col) {
             a.link(b);
@@ -126,6 +137,8 @@ impl Grid {
         }
     }
 
+    /// Unlinks two cells bidirectionally
+    /// This removes the path between the cells
     #[allow(unused)]
     pub(crate) fn unlink_cells(&mut self, a: CellHandle, b: CellHandle) {
         if let Some(a) = self.get_mut(a.row, a.col) {
@@ -137,6 +150,7 @@ impl Grid {
         }
     }
 
+    /// Renders the maze to the CLI
     pub fn render_ascii(&self) {
         let mut output = format!("+{}\n", "---+".repeat(self.cols));
 
@@ -235,6 +249,7 @@ impl Grid {
         (width, height, data)
     }
 
+    /// Saves the maze as a PNG at the given path
     pub fn save_png(&self, path: impl AsRef<Path>, cell_size: usize) -> io::Result<()> {
         let file = fs::File::create(path)?;
         let w = io::BufWriter::new(file);

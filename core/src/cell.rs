@@ -11,11 +11,14 @@ pub struct Cell {
     pub(crate) row: usize,
     pub(crate) col: usize,
 
+    // track whether we have a neighbor or not
+    // (this helps identify edge cells)
     pub(crate) north: Option<CellHandle>,
     pub(crate) south: Option<CellHandle>,
     pub(crate) east: Option<CellHandle>,
     pub(crate) west: Option<CellHandle>,
 
+    // linked cells have no wall between them
     links: HashSet<CellHandle>,
 }
 
