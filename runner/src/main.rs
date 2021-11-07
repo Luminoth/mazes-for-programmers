@@ -44,7 +44,7 @@ fn main() -> anyhow::Result<()> {
     if let Some(filename) = options.filename {
         info!("Saving to {:?} ...", filename);
 
-        grid.save_png(&filename, 20)?;
+        grid.save_png(&filename, 50)?;
     }
 
     Ok(())

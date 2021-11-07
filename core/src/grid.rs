@@ -4,7 +4,7 @@ use std::iter::Iterator;
 use std::path::Path;
 
 use crate::cell::*;
-use crate::util::{line, Color};
+use crate::util::{horizontal_line, vertical_line, Color};
 
 use rand::Rng;
 //use tracing::debug;
@@ -185,8 +185,8 @@ impl Grid {
         let wall = Color::new(0, 0, 0, 255);
 
         // width / height in pixels
-        let width = (cell_size * self.cols) + 1;
-        let height = (cell_size * self.rows) + 1;
+        let width = (cell_size * self.cols) + 2;
+        let height = (cell_size * self.rows) + 2;
 
         // size in bytes (4 per-pixel)
         let size = width * height * 4;
@@ -202,29 +202,33 @@ impl Grid {
 
         // generate the image
         for cell in self {
-            let x1 = (cell.col * cell_size) as isize;
-            let y1 = (cell.row * cell_size) as isize;
-            let x2 = ((cell.col + 1) * cell_size) as isize;
-            let y2 = ((cell.row + 1) * cell_size) as isize;
+            let x1 = 1 + (cell.col * cell_size);
+            let y1 = 1 + (cell.row * cell_size);
+            let x2 = (cell.col + 1) * cell_size;
+            let y2 = (cell.row + 1) * cell_size;
 
             if cell.north.is_none() {
-                line(&mut data, width, x1, y1, x2, y1, wall);
+                horizontal_line(&mut data, width, x1, x2, y1, wall);
             }
 
             if cell.west.is_none() {
-                line(&mut data, width, x1, y1, x1, y2, wall);
+                vertical_line(&mut data, width, x1, y1, y2, wall);
             }
 
             if let Some(east) = cell.east {
                 if !cell.is_linked(east) {
-                    line(&mut data, width, x2, y1, x2, y2, wall);
+                    vertical_line(&mut data, width, x2, y1, y2, wall);
                 }
+            } else {
+                vertical_line(&mut data, width, x2, y1, y2, wall);
             }
 
             if let Some(south) = cell.south {
                 if !cell.is_linked(south) {
-                    line(&mut data, width, x1, y1, x2, y2, wall);
+                    horizontal_line(&mut data, width, x1, x2, y2, wall);
                 }
+            } else {
+                horizontal_line(&mut data, width, x1, x2, y2, wall);
             }
         }
 
