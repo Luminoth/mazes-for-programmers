@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use argh::FromArgs;
 
 use core::algorithms::{Algorithm, BinaryTree, Sidewinder};
@@ -42,4 +44,8 @@ pub struct Options {
     /// grid height
     #[argh(option, default = "10")]
     pub height: usize,
+
+    /// filename to write to
+    #[argh(option)]
+    pub filename: Option<PathBuf>,
 }

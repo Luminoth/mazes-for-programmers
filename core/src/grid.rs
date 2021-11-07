@@ -1,8 +1,13 @@
+use std::fs;
+use std::io;
 use std::iter::Iterator;
+use std::path::Path;
 
 use crate::cell::*;
+use crate::util::{line, Color};
 
 use rand::Rng;
+//use tracing::debug;
 
 #[derive(Debug)]
 pub struct Grid {
@@ -173,6 +178,73 @@ impl Grid {
         }
 
         println!("{}", output);
+    }
+
+    fn generate_image(&self, cell_size: usize) -> Vec<u8> {
+        let background = Color::new(255, 255, 255, 255);
+        let wall = Color::new(0, 0, 0, 255);
+
+        let width = cell_size * self.cols;
+        let height = cell_size * self.rows;
+        let size = (width + 1) * (height + 1) * 4;
+
+        // init image to the background color
+        let mut data = Vec::with_capacity(size);
+        for _ in (0..size).step_by(4) {
+            data.push(background.r);
+            data.push(background.g);
+            data.push(background.b);
+            data.push(background.a);
+        }
+
+        // generate the image
+        for cell in self {
+            let x1 = cell.col * cell_size;
+            let y1 = cell.row * cell_size;
+            let x2 = (cell.col + 1) * cell_size;
+            let y2 = (cell.row + 1) * cell_size;
+
+            if cell.north.is_none() {
+                line(&mut data, width, x1, y1, x2, y1, wall);
+            }
+
+            if cell.west.is_none() {
+                line(&mut data, width, x1, y1, x1, y2, wall);
+            }
+
+            if let Some(east) = cell.east {
+                if !cell.is_linked(east) {
+                    line(&mut data, width, x2, y1, x2, y2, wall);
+                }
+            }
+
+            if let Some(south) = cell.south {
+                if !cell.is_linked(south) {
+                    line(&mut data, width, x1, y1, x2, y2, wall);
+                }
+            }
+        }
+
+        data
+    }
+
+    pub fn save_png(&self, path: impl AsRef<Path>, cell_size: usize) -> io::Result<()> {
+        let file = fs::File::create(path)?;
+        let w = io::BufWriter::new(file);
+
+        let image_width = cell_size * self.cols;
+        let image_height = cell_size * self.rows;
+
+        let mut encoder = png::Encoder::new(w, image_width as u32 + 1, image_height as u32 + 1);
+        encoder.set_color(png::ColorType::Rgba);
+        encoder.set_depth(png::BitDepth::Eight);
+        let mut writer = encoder.write_header()?;
+
+        let data = self.generate_image(cell_size);
+        //debug!("data size: {}", data.len());
+        writer.write_image_data(&data)?;
+
+        Ok(())
     }
 }
 

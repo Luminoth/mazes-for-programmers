@@ -8,8 +8,8 @@ pub(crate) struct CellHandle {
 
 #[derive(Debug)]
 pub struct Cell {
-    row: usize,
-    col: usize,
+    pub(crate) row: usize,
+    pub(crate) col: usize,
 
     pub(crate) north: Option<CellHandle>,
     pub(crate) south: Option<CellHandle>,

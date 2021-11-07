@@ -35,5 +35,11 @@ fn main() -> anyhow::Result<()> {
     grid.render_ascii();
     println!();
 
+    if let Some(filename) = options.filename {
+        info!("Saving to {:?} ...", filename);
+
+        grid.save_png(&filename, 20)?;
+    }
+
     Ok(())
 }
