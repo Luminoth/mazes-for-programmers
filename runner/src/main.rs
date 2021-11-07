@@ -1,5 +1,7 @@
 mod options;
 
+use std::time::Instant;
+
 use tracing::{debug, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
@@ -24,12 +26,16 @@ fn main() -> anyhow::Result<()> {
 
     info!("Generating {}x{} grid ...", options.width, options.height);
     let mut grid = Grid::new(options.height, options.width);
-    debug!("{:?}\n", grid);
+    debug!("{:?}", grid);
 
     info!("Running algorithm: {:?} ...", options.algorithm);
     let algorithm = options.algorithm.algorithm();
-    algorithm.run(&mut grid);
-    debug!("{:?}\n", grid);
+    {
+        let now = Instant::now();
+        algorithm.run(&mut grid);
+        info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+    }
+    debug!("{:?}", grid);
 
     println!();
     grid.render_ascii();
