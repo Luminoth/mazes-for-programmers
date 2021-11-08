@@ -28,11 +28,11 @@ fn main() -> anyhow::Result<()> {
     let mut grid = Grid::new(options.height, options.width);
     debug!("{:?}", grid);
 
-    info!("Running algorithm: {:?} ...", options.algorithm);
-    let algorithm = options.algorithm.algorithm();
+    info!("Running maze generator: {:?} ...", options.generator);
+    let generator = options.generator.generator();
     {
         let now = Instant::now();
-        algorithm.run(&mut grid);
+        generator.generate(&mut grid);
         info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
     }
     debug!("{:?}", grid);

@@ -1,5 +1,5 @@
-pub mod algorithms;
 pub mod cell;
+pub mod generators;
 pub mod grid;
 mod util;
 

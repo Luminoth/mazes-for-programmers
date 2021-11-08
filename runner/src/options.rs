@@ -2,40 +2,40 @@ use std::path::PathBuf;
 
 use argh::FromArgs;
 
-use core::algorithms::{Algorithm, BinaryTree, Sidewinder};
+use core::generators::{BinaryTree, Generator, Sidewinder};
 
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand)]
-pub enum AlgorithmOption {
-    BinaryTree(BinaryTreeAlgorithm),
-    Sidewinder(SidewinderAlgorithm),
+pub enum GeneratorOption {
+    BinaryTree(BinaryTreeGenerator),
+    Sidewinder(SidewinderGenerator),
 }
 
-impl AlgorithmOption {
-    pub fn algorithm(&self) -> Box<dyn Algorithm> {
+impl GeneratorOption {
+    pub fn generator(&self) -> Box<dyn Generator> {
         match self {
-            AlgorithmOption::BinaryTree(_) => Box::new(BinaryTree::default()),
-            AlgorithmOption::Sidewinder(_) => Box::new(Sidewinder::default()),
+            GeneratorOption::BinaryTree(_) => Box::new(BinaryTree::default()),
+            GeneratorOption::Sidewinder(_) => Box::new(Sidewinder::default()),
         }
     }
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Binary tree algorithm
+/// Binary tree generator
 #[argh(subcommand, name = "binarytree")]
-pub struct BinaryTreeAlgorithm {}
+pub struct BinaryTreeGenerator {}
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Binary tree algorithm
+/// Sidewinder generator
 #[argh(subcommand, name = "sidewinder")]
-pub struct SidewinderAlgorithm {}
+pub struct SidewinderGenerator {}
 
-/// Maze algorithm runner
+/// Maze runner
 #[derive(FromArgs, Debug)]
 pub struct Options {
-    /// algorithm to run
+    /// generator to run
     #[argh(subcommand)]
-    pub algorithm: AlgorithmOption,
+    pub generator: GeneratorOption,
 
     /// grid width
     #[argh(option, default = "10")]

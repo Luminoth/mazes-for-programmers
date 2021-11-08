@@ -1,6 +1,6 @@
 use crate::grid::Grid;
 
-use super::Algorithm;
+use super::Generator;
 
 use rand::Rng;
 
@@ -11,8 +11,8 @@ use rand::Rng;
 #[derive(Debug, Default)]
 pub struct Sidewinder;
 
-impl Algorithm for Sidewinder {
-    fn run(&self, grid: &mut Grid) {
+impl Generator for Sidewinder {
+    fn generate(&self, grid: &mut Grid) {
         let mut rng = rand::thread_rng();
 
         let mut links = Vec::default();
