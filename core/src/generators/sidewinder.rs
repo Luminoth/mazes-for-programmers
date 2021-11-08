@@ -16,7 +16,7 @@ impl Generator for Sidewinder {
         let mut rng = rand::thread_rng();
 
         let mut links = Vec::default();
-        for row in grid.row_iter() {
+        for row in grid.rows() {
             let mut run = Vec::new();
 
             for cell in row {

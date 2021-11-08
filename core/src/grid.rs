@@ -106,12 +106,12 @@ impl Grid {
     }
 
     /// Returns an iterator over the grid rows
-    pub fn row_iter(&self) -> std::slice::Iter<'_, Vec<Cell>> {
+    pub fn rows(&self) -> std::slice::Iter<'_, Vec<Cell>> {
         self.grid.iter()
     }
 
     /// Returns a mutable iterator over the grid rows
-    pub fn row_iter_mut(&mut self) -> std::slice::IterMut<'_, Vec<Cell>> {
+    pub fn rows_mut(&mut self) -> std::slice::IterMut<'_, Vec<Cell>> {
         self.grid.iter_mut()
     }
 
@@ -154,7 +154,7 @@ impl Grid {
     pub fn render_ascii(&self) {
         let mut output = format!("+{}\n", "---+".repeat(self.cols));
 
-        for row in self.row_iter() {
+        for row in self.rows() {
             let mut top = String::from("|");
             let mut bottom = String::from("+");
 
