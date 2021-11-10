@@ -12,8 +12,10 @@ use rand::Rng;
 pub struct BinaryTree;
 
 impl Generator for BinaryTree {
-    fn generate(&self, grid: &mut Grid) {
+    fn generate(&self, rows: usize, cols: usize) -> Grid {
         let mut rng = rand::thread_rng();
+
+        let mut grid = Grid::new(rows, cols);
 
         let mut links = Vec::default();
         for cell in grid.iter() {
@@ -41,5 +43,7 @@ impl Generator for BinaryTree {
         for link in links {
             grid.link_cells(link.0, link.1);
         }
+
+        grid
     }
 }

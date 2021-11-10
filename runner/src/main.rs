@@ -5,8 +5,6 @@ use std::time::Instant;
 use tracing::{debug, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
-use core::Grid;
-
 use options::Options;
 
 fn init_logging() -> anyhow::Result<()> {
@@ -24,27 +22,37 @@ fn main() -> anyhow::Result<()> {
 
     let options: Options = argh::from_env();
 
-    info!("Generating {}x{} grid ...", options.width, options.height);
-    let mut grid = Grid::new(options.height, options.width);
+    info!("Processing {}x{} maze ...", options.width, options.height);
+
+    let generator = options.generator.generator();
+    let grid = {
+        info!("Running maze generator: {:?} ...", options.generator);
+
+        let now = Instant::now();
+        let grid = generator.generate(options.height, options.width);
+        info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+
+        grid
+    };
     debug!("{:?}", grid);
 
-    info!("Running maze generator: {:?} ...", options.generator);
-    let generator = options.generator.generator();
+    let mut solver = options.generator.solver().solver(grid, 0, 0);
     {
+        info!("Running solver: {:?} ...", options.generator.solver());
+
         let now = Instant::now();
-        generator.generate(&mut grid);
+        solver.solve();
         info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
     }
-    debug!("{:?}", grid);
 
     println!();
-    grid.render_ascii();
+    solver.render_ascii();
     println!();
 
     if let Some(filename) = options.filename {
         info!("Saving to {:?} ...", filename);
 
-        grid.save_png(&filename, 50)?;
+        solver.save_png(&filename, 50)?;
     }
 
     Ok(())

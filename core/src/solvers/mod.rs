@@ -1,26 +1,72 @@
 pub mod djikstra;
 
-use std::collections::hash_map::Keys;
+//use std::collections::hash_map::Keys;
 use std::collections::HashMap;
+use std::io;
+use std::path::Path;
 
 use crate::cell::*;
 use crate::grid::*;
 
-pub trait Solver {
-    fn solve(&self, grid: &mut Grid);
+pub use djikstra::*;
+
+/// Computes the distance from the root cell to every other cell
+pub(crate) fn distances(grid: &Grid, root: CellHandle) -> Distances {
+    let mut distances = Distances::new(root);
+    let mut frontier = vec![root];
+
+    while !frontier.is_empty() {
+        let mut new_frontier = Vec::new();
+
+        for cell_handle in frontier {
+            let cell = grid.get(cell_handle.row, cell_handle.col).unwrap();
+
+            // visit all of the cells this cell is linked (has a path) to
+            for linked in cell.links() {
+                // don't revisit cells
+                if distances.contains(linked) {
+                    continue;
+                }
+
+                distances.set_distance(*linked, distances.get_distance(cell_handle).unwrap() + 1);
+                new_frontier.push(*linked);
+            }
+        }
+
+        frontier = new_frontier;
+    }
+
+    distances
 }
 
+pub trait Solver {
+    fn cell_contents(&self, _row: usize, _col: usize) -> String {
+        String::from(" ")
+    }
+
+    fn solve(&mut self);
+
+    fn render_ascii(&self);
+
+    fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()>;
+}
+
+#[derive(Debug, Default)]
 pub struct Distances {
-    root: CellHandle,
+    //root: CellHandle,
     cells: HashMap<CellHandle, usize>,
 }
 
 impl Distances {
-    pub(crate) fn new(&mut self, root: CellHandle) -> Self {
+    pub(crate) fn new(root: CellHandle) -> Self {
         let mut cells = HashMap::new();
         cells.insert(root, 0);
 
-        Self { root, cells }
+        Self { /*root,*/ cells, }
+    }
+
+    pub(crate) fn contains(&self, cell: &CellHandle) -> bool {
+        self.cells.contains_key(cell)
     }
 
     pub(crate) fn get_distance(&self, cell: CellHandle) -> Option<usize> {
@@ -31,7 +77,7 @@ impl Distances {
         self.cells.insert(cell, distance);
     }
 
-    pub(crate) fn cells(&self) -> Keys<'_, CellHandle, usize> {
+    /*pub(crate) fn cells(&self) -> Keys<'_, CellHandle, usize> {
         self.cells.keys()
-    }
+    }*/
 }

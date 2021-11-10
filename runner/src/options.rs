@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use argh::FromArgs;
 
 use core::generators::{BinaryTree, Generator, Sidewinder};
+use core::solvers::{Djikstra, Solver};
+use core::Grid;
 
 #[derive(FromArgs, PartialEq, Debug)]
 #[argh(subcommand)]
@@ -18,17 +20,51 @@ impl GeneratorOption {
             GeneratorOption::Sidewinder(_) => Box::new(Sidewinder::default()),
         }
     }
+
+    pub fn solver(&self) -> &SolverOption {
+        match self {
+            GeneratorOption::BinaryTree(generator) => &generator.solver,
+            GeneratorOption::Sidewinder(generator) => &generator.solver,
+        }
+    }
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
 /// Binary tree generator
 #[argh(subcommand, name = "binarytree")]
-pub struct BinaryTreeGenerator {}
+pub struct BinaryTreeGenerator {
+    /// solver to run
+    #[argh(subcommand)]
+    pub solver: SolverOption,
+}
 
 #[derive(FromArgs, PartialEq, Debug)]
 /// Sidewinder generator
 #[argh(subcommand, name = "sidewinder")]
-pub struct SidewinderGenerator {}
+pub struct SidewinderGenerator {
+    /// solver to run
+    #[argh(subcommand)]
+    pub solver: SolverOption,
+}
+
+#[derive(FromArgs, PartialEq, Debug)]
+#[argh(subcommand)]
+pub enum SolverOption {
+    Djikstra(DjikstraSolver),
+}
+
+impl SolverOption {
+    pub fn solver(&self, grid: Grid, root_row: usize, root_col: usize) -> Box<dyn Solver> {
+        match self {
+            SolverOption::Djikstra(_) => Box::new(Djikstra::new(grid, root_row, root_col)),
+        }
+    }
+}
+
+#[derive(FromArgs, PartialEq, Debug)]
+/// Binary tree generator
+#[argh(subcommand, name = "djikstra")]
+pub struct DjikstraSolver {}
 
 /// Maze runner
 #[derive(FromArgs, Debug)]

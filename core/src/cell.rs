@@ -1,9 +1,16 @@
+use std::collections::hash_set::Iter;
 use std::collections::HashSet;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub(crate) struct CellHandle {
     pub row: usize,
     pub col: usize,
+}
+
+impl CellHandle {
+    pub fn new(row: usize, col: usize) -> Self {
+        Self { row, col }
+    }
 }
 
 #[derive(Debug)]
@@ -36,10 +43,7 @@ impl Cell {
     }
 
     pub(crate) fn handle(&self) -> CellHandle {
-        CellHandle {
-            row: self.row,
-            col: self.col,
-        }
+        CellHandle::new(self.row, self.col)
     }
 
     pub(crate) fn is_linked(&self, cell: CellHandle) -> bool {
@@ -52,5 +56,9 @@ impl Cell {
 
     pub(crate) fn unlink(&mut self, cell: CellHandle) {
         self.links.remove(&cell);
+    }
+
+    pub(crate) fn links(&self) -> Iter<'_, CellHandle> {
+        self.links.iter()
     }
 }

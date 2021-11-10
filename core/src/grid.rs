@@ -4,6 +4,7 @@ use std::iter::Iterator;
 use std::path::Path;
 
 use crate::cell::*;
+use crate::solvers::Solver;
 use crate::util::{horizontal_line, vertical_line, Color};
 
 use rand::Rng;
@@ -20,6 +21,10 @@ pub struct Grid {
 
 impl Grid {
     pub fn new(rows: usize, cols: usize) -> Self {
+        // solver distance printing
+        // limits us to a max distance of 36
+        assert!(rows + cols < 36);
+
         let mut grid = Self {
             rows,
             cols,
@@ -150,8 +155,7 @@ impl Grid {
         }
     }
 
-    /// Renders the maze to the CLI
-    pub fn render_ascii(&self) {
+    pub(crate) fn render_ascii_internal(&self, solver: Option<&impl Solver>) {
         let mut output = format!("+{}\n", "---+".repeat(self.cols));
 
         for row in self.rows() {
@@ -159,7 +163,14 @@ impl Grid {
             let mut bottom = String::from("+");
 
             for cell in row {
-                top.push_str("   ");
+                let body = format!(
+                    " {} ",
+                    solver
+                        .map(|solver| solver.cell_contents(cell.row, cell.col))
+                        .unwrap_or(String::from(" "))
+                );
+
+                top.push_str(&body);
                 let east_boundary = if let Some(east) = cell.east {
                     if cell.is_linked(east) {
                         " "
@@ -192,6 +203,11 @@ impl Grid {
         }
 
         println!("{}", output);
+    }
+
+    /// Renders the maze to the CLI
+    pub fn render_ascii(&self) {
+        self.render_ascii_internal(None::<&crate::solvers::Djikstra>);
     }
 
     fn generate_image(&self, cell_size: usize) -> (usize, usize, Vec<u8>) {
