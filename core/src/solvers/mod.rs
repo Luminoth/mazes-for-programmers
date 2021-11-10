@@ -8,6 +8,7 @@ use crate::Grid;
 pub use djikstra::*;
 
 /// All maze solvers implement this trait
+// TODO: use an enum instead of a trait
 pub trait Solver {
     fn grid(&self) -> &Grid;
 
