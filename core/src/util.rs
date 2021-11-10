@@ -7,8 +7,27 @@ pub struct Color {
 }
 
 impl Color {
-    pub fn new(r: u8, g: u8, b: u8, a: u8) -> Self {
+    pub const WHITE: Color = Color::new(255, 255, 255, 255);
+
+    pub const fn new(r: u8, g: u8, b: u8, a: u8) -> Self {
         Self { r, g, b, a }
+    }
+}
+
+/// Renders a quad in the given data
+pub fn quad(
+    mut data: impl AsMut<[u8]>,
+    width: usize,
+    x1: usize,
+    y1: usize,
+    x2: usize,
+    y2: usize,
+    color: Color,
+) {
+    for y in y1..=y2 {
+        for x in x1..=x2 {
+            plot(data.as_mut(), width, x, y, color);
+        }
     }
 }
 

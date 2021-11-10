@@ -4,7 +4,7 @@ use std::iter::Iterator;
 use std::path::Path;
 
 use crate::solvers::Solver;
-use crate::util::{horizontal_line, vertical_line, Color};
+use crate::util::{horizontal_line, quad, vertical_line, Color};
 use crate::{Cell, CellHandle};
 
 use rand::Rng;
@@ -21,9 +21,11 @@ pub struct Grid {
 
 impl Grid {
     pub fn new(rows: usize, cols: usize) -> Self {
+        assert!(rows > 0 && cols > 0);
+
         // solver distance printing
         // limits us to 36 characters
-        assert!(rows * cols <= 36);
+        //assert!(rows * cols <= 36);
 
         let mut grid = Self {
             rows,
@@ -78,6 +80,16 @@ impl Grid {
         }
     }
 
+    /// The number of rows in the grid
+    pub fn rows(&self) -> usize {
+        self.rows
+    }
+
+    /// The number of cols in the grid
+    pub fn cols(&self) -> usize {
+        self.cols
+    }
+
     pub fn size(&self) -> usize {
         self.rows * self.cols
     }
@@ -111,12 +123,12 @@ impl Grid {
     }
 
     /// Returns an iterator over the grid rows
-    pub fn rows(&self) -> std::slice::Iter<'_, Vec<Cell>> {
+    pub fn rows_iter(&self) -> std::slice::Iter<'_, Vec<Cell>> {
         self.grid.iter()
     }
 
     /// Returns a mutable iterator over the grid rows
-    pub fn rows_mut(&mut self) -> std::slice::IterMut<'_, Vec<Cell>> {
+    pub fn rows_iter_mut(&mut self) -> std::slice::IterMut<'_, Vec<Cell>> {
         self.grid.iter_mut()
     }
 
@@ -171,7 +183,7 @@ impl Grid {
     pub(crate) fn render_ascii_internal(&self, solver: Option<&impl Solver>) {
         let mut output = format!("+{}\n", "---+".repeat(self.cols));
 
-        for row in self.rows() {
+        for row in self.rows_iter() {
             let mut top = String::from("|");
             let mut bottom = String::from("+");
 
@@ -223,27 +235,39 @@ impl Grid {
         self.render_ascii_internal(None::<&crate::solvers::Djikstra>);
     }
 
-    fn generate_image(&self, cell_size: usize) -> (usize, usize, Vec<u8>) {
-        let background = Color::new(255, 255, 255, 255);
+    fn generate_image(
+        &self,
+        cell_size: usize,
+        solver: Option<&impl Solver>,
+    ) -> (usize, usize, Vec<u8>) {
         let wall = Color::new(0, 0, 0, 255);
 
         // width / height in pixels
+        // (plus 2 for the edge walls)
         let width = (cell_size * self.cols) + 2;
         let height = (cell_size * self.rows) + 2;
 
-        // size in bytes (4 per-pixel)
+        // size in bytes (4 bytes per-pixel)
         let size = width * height * 4;
 
-        // init image to the background color
-        let mut data = Vec::with_capacity(size);
-        for _ in (0..size).step_by(4) {
-            data.push(background.r);
-            data.push(background.g);
-            data.push(background.b);
-            data.push(background.a);
+        // init image to the background color for each cell
+        let mut data = vec![0; size];
+        for cell in self {
+            let cell_handle = cell.handle();
+
+            let background = solver
+                .map(|solver| solver.cell_background(cell_handle.row, cell_handle.col))
+                .unwrap_or_else(|| Color::WHITE);
+
+            let x1 = cell.col * cell_size;
+            let y1 = cell.row * cell_size;
+            let x2 = (cell.col + 1) * cell_size;
+            let y2 = (cell.row + 1) * cell_size;
+
+            quad(&mut data, width, x1, y1, x2, y2, background);
         }
 
-        // generate the image
+        // draw the cell walls
         for cell in self {
             let x1 = 1 + (cell.col * cell_size);
             let y1 = 1 + (cell.row * cell_size);
@@ -278,12 +302,16 @@ impl Grid {
         (width, height, data)
     }
 
-    /// Saves the maze as a PNG at the given path
-    pub fn save_png(&self, path: impl AsRef<Path>, cell_size: usize) -> io::Result<()> {
+    pub(crate) fn save_png_internal(
+        &self,
+        path: impl AsRef<Path>,
+        cell_size: usize,
+        solver: Option<&impl Solver>,
+    ) -> io::Result<()> {
         let file = fs::File::create(path)?;
         let w = io::BufWriter::new(file);
 
-        let (width, height, data) = self.generate_image(cell_size);
+        let (width, height, data) = self.generate_image(cell_size, solver);
 
         let mut encoder = png::Encoder::new(w, width as u32, height as u32);
         encoder.set_color(png::ColorType::Rgba);
@@ -294,6 +322,11 @@ impl Grid {
         writer.write_image_data(&data)?;
 
         Ok(())
+    }
+
+    /// Saves the maze as a PNG at the given path
+    pub fn save_png(&self, path: impl AsRef<Path>, cell_size: usize) -> io::Result<()> {
+        self.save_png_internal(path, cell_size, None::<&crate::solvers::Djikstra>)
     }
 }
 

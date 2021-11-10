@@ -3,6 +3,7 @@ pub mod djikstra;
 use std::io;
 use std::path::Path;
 
+use crate::util::Color;
 use crate::Grid;
 
 pub use djikstra::*;
@@ -15,6 +16,11 @@ pub trait Solver {
     /// Returns the solver-based contents of the given cell
     fn cell_contents(&self, _row: usize, _col: usize) -> String {
         String::from(" ")
+    }
+
+    /// Returns the solver-based background color of the given cell
+    fn cell_background(&self, _row: usize, _col: usize) -> Color {
+        Color::WHITE
     }
 
     /// Solves the maze

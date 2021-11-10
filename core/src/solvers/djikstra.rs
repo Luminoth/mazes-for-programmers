@@ -2,9 +2,10 @@ use std::cell::RefCell;
 use std::io;
 use std::path::Path;
 
+use crate::util::Color;
 use crate::CellHandle;
+use crate::Distances;
 use crate::Grid;
-use crate::{distances, Distances};
 
 use super::Solver;
 
@@ -14,7 +15,11 @@ pub struct Djikstra {
     grid: Grid,
     root: CellHandle,
 
-    //distances: RefCell<Option<Distances>>,
+    // used for cell background coloring
+    distances_from_center: RefCell<Option<Distances>>,
+    max_distance_from_center: RefCell<usize>,
+
+    // solved path through the maze
     path: RefCell<Option<Distances>>,
 }
 
@@ -23,7 +28,8 @@ impl Djikstra {
         Self {
             grid,
             root: CellHandle::new(root_row, root_column),
-            //distances: RefCell::new(None),
+            distances_from_center: RefCell::new(None),
+            max_distance_from_center: RefCell::new(0),
             path: RefCell::new(None),
         }
     }
@@ -70,27 +76,57 @@ impl Solver for Djikstra {
     fn cell_contents(&self, row: usize, col: usize) -> String {
         let cell = CellHandle::new(row, col);
 
-        if let Some(path) = &*self.path.borrow() {
+        if let Some(path) = self.path.borrow().as_ref() {
             Djikstra::cell_contents_from_distances(path, cell)
-        /*} else if let Some(distances) = &*self.distances.borrow() {
-        Djikstra::cell_contents_from_distances(distances, cell)*/
         } else {
             String::from(" ")
         }
     }
 
+    fn cell_background(&self, row: usize, col: usize) -> Color {
+        let cell = CellHandle::new(row, col);
+
+        let distance = self
+            .distances_from_center
+            .borrow()
+            .as_ref()
+            .unwrap()
+            .get_distance(&cell)
+            .unwrap_or_default();
+        let max_distance = *self.max_distance_from_center.borrow();
+
+        let intensity = (max_distance - distance) as f32 / max_distance as f32;
+        let dark = (255.0 * intensity).round() as u8;
+        let bright = 128 + (127.0 * intensity).round() as u8;
+
+        Color::new(dark, bright, dark, 255)
+    }
+
     fn solve(&self, goal_row: usize, goal_col: usize) {
-        let distances = distances(&self.grid, self.root);
+        // compute the shortest path
+        let distances = crate::distances(&self.grid, self.root);
         *self.path.borrow_mut() =
             Some(self.path_to(CellHandle::new(goal_row, goal_col), &distances));
-        //*self.distances.borrow_mut() = Some(distances);
+
+        // compute distances from the center
+        // for cell background coloring
+        let distances = crate::distances(
+            &self.grid,
+            CellHandle::new(self.grid.rows() / 2, self.grid.cols() / 2),
+        );
+
+        let (_, max_distance) = distances.max_distance();
+        *self.max_distance_from_center.borrow_mut() = max_distance;
+
+        *self.distances_from_center.borrow_mut() = Some(distances);
     }
 
     fn render_ascii(&self) {
-        self.grid.render_ascii_internal(Some(self));
+        //self.grid.render_ascii_internal(Some(self));
+        self.grid.render_ascii_internal(None::<&Self>);
     }
 
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()> {
-        self.grid.save_png(path, cell_size)
+        self.grid.save_png_internal(path, cell_size, Some(self))
     }
 }
