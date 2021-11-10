@@ -2,10 +2,11 @@ use std::cell::RefCell;
 use std::io;
 use std::path::Path;
 
-use crate::cell::CellHandle;
+use crate::CellHandle;
 use crate::Grid;
+use crate::{distances, Distances};
 
-use super::{distances, Distances, Solver};
+use super::Solver;
 
 /// Simple Djikstra's algorithm solver
 #[derive(Debug)]

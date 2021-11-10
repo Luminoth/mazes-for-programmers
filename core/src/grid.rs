@@ -3,9 +3,9 @@ use std::io;
 use std::iter::Iterator;
 use std::path::Path;
 
-use crate::cell::*;
 use crate::solvers::Solver;
 use crate::util::{horizontal_line, vertical_line, Color};
+use crate::{Cell, CellHandle};
 
 use rand::Rng;
 //use tracing::debug;
@@ -22,8 +22,8 @@ pub struct Grid {
 impl Grid {
     pub fn new(rows: usize, cols: usize) -> Self {
         // solver distance printing
-        // limits us to a max distance of 36
-        assert!(rows + cols < 36);
+        // limits us to 36 characters
+        assert!(rows * cols <= 36);
 
         let mut grid = Self {
             rows,
@@ -153,6 +153,18 @@ impl Grid {
         if let Some(b) = self.get_mut(b.row, b.col) {
             b.unlink(a);
         }
+    }
+
+    pub fn longest_path(&self) -> ((usize, usize), (usize, usize)) {
+        let start = CellHandle::new(0, 0);
+
+        let distances = crate::distances(self, start);
+        let (new_start, _) = distances.max_distance();
+
+        let distances = crate::distances(self, new_start);
+        let (goal, _) = distances.max_distance();
+
+        (new_start.unpack(), goal.unpack())
     }
 
     pub(crate) fn render_ascii_internal(&self, solver: Option<&impl Solver>) {

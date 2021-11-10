@@ -1,4 +1,4 @@
-use crate::grid::Grid;
+use crate::Grid;
 
 use super::Generator;
 

@@ -36,13 +36,22 @@ fn main() -> anyhow::Result<()> {
     };
     debug!("{:?}", grid);
 
-    // TODO: make the root / goal configurable
-    let solver = options.generator.solver().solver(grid, 0, 0);
+    let (root, goal) = {
+        info!("Finding longest path ...");
+
+        let now = Instant::now();
+        let (root, goal) = grid.longest_path();
+        info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+
+        (root, goal)
+    };
+
+    let solver = options.generator.solver().solver(grid, root.0, root.1);
     {
         info!("Running solver: {:?} ...", options.generator.solver());
 
         let now = Instant::now();
-        solver.solve(options.height - 1, 0);
+        solver.solve(goal.0, goal.1);
         info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
     }
 

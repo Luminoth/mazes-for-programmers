@@ -1,7 +1,7 @@
 pub mod binarytree;
 pub mod sidewinder;
 
-use crate::grid::Grid;
+use crate::Grid;
 
 pub use binarytree::*;
 pub use sidewinder::*;

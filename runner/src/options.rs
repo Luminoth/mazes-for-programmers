@@ -74,11 +74,11 @@ pub struct Options {
     pub generator: GeneratorOption,
 
     /// grid width
-    #[argh(option, default = "10")]
+    #[argh(option, default = "6")]
     pub width: usize,
 
     /// grid height
-    #[argh(option, default = "10")]
+    #[argh(option, default = "6")]
     pub height: usize,
 
     /// filename to write to
