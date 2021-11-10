@@ -155,6 +155,7 @@ impl Grid {
         }
     }
 
+    /// Compute the longest path through the maze
     pub fn longest_path(&self) -> ((usize, usize), (usize, usize)) {
         let start = CellHandle::new(0, 0);
 
