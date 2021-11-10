@@ -23,10 +23,6 @@ impl Grid {
     pub fn new(rows: usize, cols: usize) -> Self {
         assert!(rows > 0 && cols > 0);
 
-        // solver distance printing
-        // limits us to 36 characters
-        //assert!(rows * cols <= 36);
-
         let mut grid = Self {
             rows,
             cols,
@@ -180,8 +176,17 @@ impl Grid {
         (new_start.unpack(), goal.unpack())
     }
 
+    pub fn empty_cell_contents(&self) -> (usize, String) {
+        let digits = (self.size() as f64).log(36.0).ceil() as usize;
+        (digits, str::repeat(" ", digits))
+    }
+
     pub(crate) fn render_ascii_internal(&self, solver: Option<&impl Solver>) {
-        let mut output = format!("+{}\n", "---+".repeat(self.cols));
+        let (digits, empty) = self.empty_cell_contents();
+        let mut output = format!(
+            "+{}\n",
+            format!("-{}-+", str::repeat("-", digits)).repeat(self.cols)
+        );
 
         for row in self.rows_iter() {
             let mut top = String::from("|");
@@ -192,7 +197,7 @@ impl Grid {
                     " {} ",
                     solver
                         .map(|solver| solver.cell_contents(cell.row, cell.col))
-                        .unwrap_or_else(|| String::from(" "))
+                        .unwrap_or_else(|| empty.clone())
                 );
 
                 top.push_str(&body);
@@ -209,14 +214,14 @@ impl Grid {
 
                 let south_boundary = if let Some(south) = cell.south {
                     if cell.is_linked(south) {
-                        "   "
+                        format!(" {} ", str::repeat(" ", digits))
                     } else {
-                        "---"
+                        format!("-{}-", str::repeat("-", digits))
                     }
                 } else {
-                    "---"
+                    format!("-{}-", str::repeat("-", digits))
                 };
-                bottom.push_str(south_boundary);
+                bottom.push_str(&south_boundary);
                 bottom.push('+');
             }
 

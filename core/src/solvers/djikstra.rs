@@ -34,12 +34,18 @@ impl Djikstra {
         }
     }
 
-    fn cell_contents_from_distances(distances: &Distances, cell: CellHandle) -> String {
+    fn cell_contents_from_distances(&self, distances: &Distances, cell: CellHandle) -> String {
+        let (digits, empty) = self.grid.empty_cell_contents();
+
         let distance = distances.get_distance(&cell);
         if let Some(distance) = distance {
-            format!("{}", radix_fmt::radix_36(distance))
+            format!(
+                "{:>width$}",
+                radix_fmt::radix_36(distance).to_string(),
+                width = digits
+            )
         } else {
-            String::from(" ")
+            empty
         }
     }
 
@@ -77,9 +83,10 @@ impl Solver for Djikstra {
         let cell = CellHandle::new(row, col);
 
         if let Some(path) = self.path.borrow().as_ref() {
-            Djikstra::cell_contents_from_distances(path, cell)
+            self.cell_contents_from_distances(path, cell)
         } else {
-            String::from(" ")
+            let (_, empty) = self.grid.empty_cell_contents();
+            empty
         }
     }
 
@@ -122,8 +129,7 @@ impl Solver for Djikstra {
     }
 
     fn render_ascii(&self) {
-        //self.grid.render_ascii_internal(Some(self));
-        self.grid.render_ascii_internal(None::<&Self>);
+        self.grid.render_ascii_internal(Some(self));
     }
 
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()> {

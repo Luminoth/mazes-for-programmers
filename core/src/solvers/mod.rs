@@ -15,7 +15,8 @@ pub trait Solver {
 
     /// Returns the solver-based contents of the given cell
     fn cell_contents(&self, _row: usize, _col: usize) -> String {
-        String::from(" ")
+        let (_, empty) = self.grid().empty_cell_contents();
+        empty
     }
 
     /// Returns the solver-based background color of the given cell
