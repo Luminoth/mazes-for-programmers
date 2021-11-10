@@ -28,7 +28,7 @@ pub(crate) fn distances(grid: &Grid, root: CellHandle) -> Distances {
                     continue;
                 }
 
-                distances.set_distance(*linked, distances.get_distance(cell_handle).unwrap() + 1);
+                distances.set_distance(*linked, distances.get_distance(&cell_handle).unwrap() + 1);
                 new_frontier.push(*linked);
             }
         }
@@ -41,13 +41,15 @@ pub(crate) fn distances(grid: &Grid, root: CellHandle) -> Distances {
 
 /// All maze solvers implement this trait
 pub trait Solver {
+    fn grid(&self) -> &Grid;
+
     /// Returns the solver-based contents of the given cell
     fn cell_contents(&self, _row: usize, _col: usize) -> String {
         String::from(" ")
     }
 
     /// Solves the maze
-    fn solve(&self);
+    fn solve(&self, goal_row: usize, goal_col: usize);
 
     /// Renders the solved maze to the CLI
     fn render_ascii(&self);
@@ -74,8 +76,8 @@ impl Distances {
         self.cells.contains_key(cell)
     }
 
-    pub(crate) fn get_distance(&self, cell: CellHandle) -> Option<usize> {
-        self.cells.get(&cell).copied()
+    pub(crate) fn get_distance(&self, cell: &CellHandle) -> Option<usize> {
+        self.cells.get(cell).copied()
     }
 
     pub(crate) fn set_distance(&mut self, cell: CellHandle, distance: usize) {
