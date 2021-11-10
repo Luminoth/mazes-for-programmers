@@ -39,15 +39,20 @@ pub(crate) fn distances(grid: &Grid, root: CellHandle) -> Distances {
     distances
 }
 
+/// All maze solvers implement this trait
 pub trait Solver {
+    /// Returns the solver-based contents of the given cell
     fn cell_contents(&self, _row: usize, _col: usize) -> String {
         String::from(" ")
     }
 
-    fn solve(&mut self);
+    /// Solves the maze
+    fn solve(&self);
 
+    /// Renders the solved maze to the CLI
     fn render_ascii(&self);
 
+    /// Saves the solved maze as a PNG at the given path
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()>;
 }
 

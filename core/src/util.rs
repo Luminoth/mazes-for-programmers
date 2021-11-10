@@ -1,5 +1,5 @@
 #[derive(Debug, Default, Copy, Clone)]
-pub struct Color {
+pub(crate) struct Color {
     pub r: u8,
     pub g: u8,
     pub b: u8,
@@ -13,7 +13,7 @@ impl Color {
 }
 
 /// Renders a horizontal line in the given data
-pub fn horizontal_line(
+pub(crate) fn horizontal_line(
     mut data: impl AsMut<[u8]>,
     width: usize,
     x1: usize,
@@ -27,7 +27,7 @@ pub fn horizontal_line(
 }
 
 /// Renders a vertical line in the given data
-pub fn vertical_line(
+pub(crate) fn vertical_line(
     mut data: impl AsMut<[u8]>,
     width: usize,
     x: usize,

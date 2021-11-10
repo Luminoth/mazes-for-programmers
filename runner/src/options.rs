@@ -62,7 +62,7 @@ impl SolverOption {
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Binary tree generator
+/// Simple Djikstra's algorithm solver
 #[argh(subcommand, name = "djikstra")]
 pub struct DjikstraSolver {}
 

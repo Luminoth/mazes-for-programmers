@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::io;
 use std::path::Path;
 
@@ -6,12 +7,13 @@ use crate::Grid;
 
 use super::{distances, Distances, Solver};
 
+/// Simple Djikstra's algorithm solver
 #[derive(Debug)]
 pub struct Djikstra {
     grid: Grid,
     root: CellHandle,
 
-    distances: Option<Distances>,
+    distances: RefCell<Option<Distances>>,
 }
 
 impl Djikstra {
@@ -19,14 +21,14 @@ impl Djikstra {
         Self {
             grid,
             root: CellHandle::new(root_row, root_column),
-            distances: None,
+            distances: RefCell::new(None),
         }
     }
 }
 
 impl Solver for Djikstra {
     fn cell_contents(&self, row: usize, col: usize) -> String {
-        if let Some(distances) = &self.distances {
+        if let Some(distances) = &*self.distances.borrow() {
             format!(
                 "{}",
                 radix_fmt::radix_36(
@@ -40,8 +42,8 @@ impl Solver for Djikstra {
         }
     }
 
-    fn solve(&mut self) {
-        self.distances = Some(distances(&self.grid, self.root));
+    fn solve(&self) {
+        *self.distances.borrow_mut() = Some(distances(&self.grid, self.root));
 
         // TODO: finish this
     }

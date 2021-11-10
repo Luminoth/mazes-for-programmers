@@ -167,7 +167,7 @@ impl Grid {
                     " {} ",
                     solver
                         .map(|solver| solver.cell_contents(cell.row, cell.col))
-                        .unwrap_or(String::from(" "))
+                        .unwrap_or_else(|| String::from(" "))
                 );
 
                 top.push_str(&body);

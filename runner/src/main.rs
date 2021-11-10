@@ -36,7 +36,7 @@ fn main() -> anyhow::Result<()> {
     };
     debug!("{:?}", grid);
 
-    let mut solver = options.generator.solver().solver(grid, 0, 0);
+    let solver = options.generator.solver().solver(grid, 0, 0);
     {
         info!("Running solver: {:?} ...", options.generator.solver());
 
