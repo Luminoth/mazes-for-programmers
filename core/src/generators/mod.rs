@@ -1,8 +1,10 @@
+pub mod aldous_broder;
 pub mod binarytree;
 pub mod sidewinder;
 
 use crate::Grid;
 
+pub use aldous_broder::*;
 pub use binarytree::*;
 pub use sidewinder::*;
 

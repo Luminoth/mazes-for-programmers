@@ -6,8 +6,10 @@ use rand::Rng;
 
 /// Sidewinder maze generator
 /// Groups adjacent cells as a run before path carving
-/// Generates a perfect maze?
-/// North edge path is always unbroken
+/// Perfect - Yes
+/// Uniform - No
+/// Bias - North edge path is always unbroken
+/// Runtime - Fast
 #[derive(Debug, Default)]
 pub struct Sidewinder;
 

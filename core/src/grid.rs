@@ -5,7 +5,7 @@ use std::path::Path;
 
 use crate::solvers::Solver;
 use crate::util::{horizontal_line, quad, vertical_line, Color};
-use crate::{Cell, CellHandle};
+use crate::{Cell, CellHandle, Renderable};
 
 use rand::Rng;
 //use tracing::debug;
@@ -235,11 +235,6 @@ impl Grid {
         println!("{}", output);
     }
 
-    /// Renders the maze to the CLI
-    pub fn render_ascii(&self) {
-        self.render_ascii_internal(None::<&crate::solvers::Djikstra>);
-    }
-
     fn generate_image(
         &self,
         cell_size: usize,
@@ -328,9 +323,14 @@ impl Grid {
 
         Ok(())
     }
+}
 
-    /// Saves the maze as a PNG at the given path
-    pub fn save_png(&self, path: impl AsRef<Path>, cell_size: usize) -> io::Result<()> {
+impl Renderable for Grid {
+    fn render_ascii(&self) {
+        self.render_ascii_internal(None::<&crate::solvers::Djikstra>);
+    }
+
+    fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()> {
         self.save_png_internal(path, cell_size, None::<&crate::solvers::Djikstra>)
     }
 }

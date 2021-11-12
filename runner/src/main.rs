@@ -1,9 +1,12 @@
 mod options;
 
+use std::path::Path;
 use std::time::Instant;
 
 use tracing::{debug, info, Level};
 use tracing_subscriber::FmtSubscriber;
+
+use core::Renderable;
 
 use options::Options;
 
@@ -17,6 +20,23 @@ fn init_logging() -> anyhow::Result<()> {
     Ok(())
 }
 
+fn render(
+    renderable: &(impl Renderable + ?Sized),
+    filename: &Option<impl AsRef<Path>>,
+) -> anyhow::Result<()> {
+    println!();
+    renderable.render_ascii();
+    println!();
+
+    if let Some(filename) = filename {
+        info!("Saving to {:?} ...", filename.as_ref());
+
+        renderable.save_png(filename.as_ref(), 50)?;
+    }
+
+    Ok(())
+}
+
 fn main() -> anyhow::Result<()> {
     init_logging()?;
 
@@ -26,7 +46,7 @@ fn main() -> anyhow::Result<()> {
 
     let generator = options.generator.generator();
     let grid = {
-        info!("Running maze generator: {:?} ...", options.generator);
+        info!("Running maze generator {:?} ...", options.generator);
 
         let now = Instant::now();
         let grid = generator.generate(options.height, options.width);
@@ -46,23 +66,25 @@ fn main() -> anyhow::Result<()> {
         (root, goal)
     };
 
-    let solver = options.generator.solver().solver(grid, root.0, root.1);
-    {
-        info!("Running solver: {:?} ...", options.generator.solver());
+    let solver = options.generator.solver();
+    if let Some(solver) = solver {
+        let solver = solver.solver(grid, root.0, root.1);
+        {
+            info!(
+                "Running solver {:?} from {:?} to {:?} ...",
+                options.generator.solver(),
+                root,
+                goal
+            );
 
-        let now = Instant::now();
-        solver.solve(goal.0, goal.1);
-        info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
-    }
+            let now = Instant::now();
+            solver.solve(goal.0, goal.1);
+            info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+        }
 
-    println!();
-    solver.render_ascii();
-    println!();
-
-    if let Some(filename) = options.filename {
-        info!("Saving to {:?} ...", filename);
-
-        solver.save_png(&filename, 50)?;
+        render(&*solver, &options.filename)?;
+    } else {
+        render(&grid, &options.filename)?;
     }
 
     Ok(())

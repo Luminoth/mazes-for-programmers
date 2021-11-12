@@ -6,8 +6,10 @@ use rand::Rng;
 
 /// BinaryTree maze generator
 /// Selects random N/E neighbors to link
-/// Generates a perfect maze
-/// North / East edge paths are always unbroken
+/// Perfect - Yes
+/// Uniform - No
+/// Bias - North / East edge paths are always unbroken
+/// Runtime - Fast
 #[derive(Debug, Default)]
 pub struct BinaryTree;
 

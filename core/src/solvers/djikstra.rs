@@ -3,9 +3,7 @@ use std::io;
 use std::path::Path;
 
 use crate::util::Color;
-use crate::CellHandle;
-use crate::Distances;
-use crate::Grid;
+use crate::{CellHandle, Distances, Grid, Renderable};
 
 use super::Solver;
 
@@ -127,7 +125,9 @@ impl Solver for Djikstra {
 
         *self.distances_from_center.borrow_mut() = Some(distances);
     }
+}
 
+impl Renderable for Djikstra {
     fn render_ascii(&self) {
         self.grid.render_ascii_internal(Some(self));
     }

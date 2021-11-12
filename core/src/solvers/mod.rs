@@ -1,16 +1,13 @@
 pub mod djikstra;
 
-use std::io;
-use std::path::Path;
-
 use crate::util::Color;
-use crate::Grid;
+use crate::{Grid, Renderable};
 
 pub use djikstra::*;
 
 /// All maze solvers implement this trait
 // TODO: use an enum instead of a trait
-pub trait Solver {
+pub trait Solver: Renderable {
     fn grid(&self) -> &Grid;
 
     /// Returns the solver-based contents of the given cell
@@ -26,10 +23,4 @@ pub trait Solver {
 
     /// Solves the maze
     fn solve(&self, goal_row: usize, goal_col: usize);
-
-    /// Renders the solved maze to the CLI
-    fn render_ascii(&self);
-
-    /// Saves the solved maze as a PNG at the given path
-    fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()>;
 }

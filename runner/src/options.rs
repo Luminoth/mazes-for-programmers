@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use argh::FromArgs;
 
-use core::generators::{BinaryTree, Generator, Sidewinder};
+use core::generators::{AldousBroder, BinaryTree, Generator, Sidewinder};
 use core::solvers::{Djikstra, Solver};
 use core::Grid;
 
@@ -11,6 +11,7 @@ use core::Grid;
 pub enum GeneratorOption {
     BinaryTree(BinaryTreeGenerator),
     Sidewinder(SidewinderGenerator),
+    AldousBroder(AldousBroderGenerator),
 }
 
 impl GeneratorOption {
@@ -18,13 +19,15 @@ impl GeneratorOption {
         match self {
             GeneratorOption::BinaryTree(_) => Box::new(BinaryTree::default()),
             GeneratorOption::Sidewinder(_) => Box::new(Sidewinder::default()),
+            GeneratorOption::AldousBroder(_) => Box::new(AldousBroder::default()),
         }
     }
 
-    pub fn solver(&self) -> &SolverOption {
+    pub fn solver(&self) -> &Option<SolverOption> {
         match self {
             GeneratorOption::BinaryTree(generator) => &generator.solver,
             GeneratorOption::Sidewinder(generator) => &generator.solver,
+            GeneratorOption::AldousBroder(generator) => &generator.solver,
         }
     }
 }
@@ -35,7 +38,7 @@ impl GeneratorOption {
 pub struct BinaryTreeGenerator {
     /// solver to run
     #[argh(subcommand)]
-    pub solver: SolverOption,
+    pub solver: Option<SolverOption>,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -44,7 +47,16 @@ pub struct BinaryTreeGenerator {
 pub struct SidewinderGenerator {
     /// solver to run
     #[argh(subcommand)]
-    pub solver: SolverOption,
+    pub solver: Option<SolverOption>,
+}
+
+#[derive(FromArgs, PartialEq, Debug)]
+/// Binary tree generator
+#[argh(subcommand, name = "aldousbroder")]
+pub struct AldousBroderGenerator {
+    /// solver to run
+    #[argh(subcommand)]
+    pub solver: Option<SolverOption>,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]

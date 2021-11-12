@@ -1,6 +1,8 @@
 use std::collections::hash_set::Iter;
 use std::collections::HashSet;
 
+use rand::Rng;
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct CellHandle {
     pub row: usize,
@@ -60,16 +62,56 @@ impl Cell {
         CellHandle::new(self.row, self.col)
     }
 
+    // TODO: this could be better if we didn't build a vec each time
+    pub fn neighbors(&self) -> Vec<CellHandle> {
+        let mut neighbors = Vec::new();
+
+        if let Some(neighbor) = self.north {
+            neighbors.push(neighbor);
+        }
+
+        if let Some(neighbor) = self.south {
+            neighbors.push(neighbor);
+        }
+
+        if let Some(neighbor) = self.east {
+            neighbors.push(neighbor);
+        }
+
+        if let Some(neighbor) = self.west {
+            neighbors.push(neighbor);
+        }
+
+        neighbors
+    }
+
+    pub fn get_random_neighbor(&self) -> CellHandle {
+        let mut rng = rand::thread_rng();
+
+        let neighbors = self.neighbors();
+
+        let index = rng.gen_range(0..neighbors.len());
+        neighbors[index]
+    }
+
     pub fn is_linked(&self, cell: CellHandle) -> bool {
         self.links.contains(&cell)
     }
 
+    // NOTE: this is not bidirectional
+    // use Grid::link_cells() for that
     pub fn link(&mut self, cell: CellHandle) {
         self.links.insert(cell);
     }
 
+    // NOTE: this is not bidirectional
+    // use Grid::unlink_cells() for that
     pub fn unlink(&mut self, cell: CellHandle) {
         self.links.remove(&cell);
+    }
+
+    pub fn has_links(&self) -> bool {
+        !self.links.is_empty()
     }
 
     pub fn links(&self) -> Iter<'_, CellHandle> {
