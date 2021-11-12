@@ -1,7 +1,7 @@
 use std::collections::hash_set::Iter;
 use std::collections::HashSet;
 
-use rand::Rng;
+use crate::util::sample;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct CellHandle {
@@ -86,12 +86,8 @@ impl Cell {
     }
 
     pub fn get_random_neighbor(&self) -> CellHandle {
-        let mut rng = rand::thread_rng();
-
         let neighbors = self.neighbors();
-
-        let index = rng.gen_range(0..neighbors.len());
-        neighbors[index]
+        *sample(&neighbors)
     }
 
     pub fn is_linked(&self, cell: CellHandle) -> bool {

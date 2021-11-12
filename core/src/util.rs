@@ -1,3 +1,5 @@
+use rand::Rng;
+
 #[derive(Debug, Default, Copy, Clone)]
 pub struct Color {
     pub r: u8,
@@ -67,4 +69,17 @@ fn plot(mut data: impl AsMut<[u8]>, width: usize, x: usize, y: usize, color: Col
     data[index + 1] = color.g;
     data[index + 2] = color.b;
     data[index + 3] = color.a;
+}
+
+pub fn coin() -> bool {
+    let mut rng = rand::thread_rng();
+
+    rng.gen_range(0..=1) == 0
+}
+
+pub fn sample<T>(items: &[T]) -> &T {
+    let mut rng = rand::thread_rng();
+
+    let index = rng.gen_range(0..items.as_ref().len());
+    &items[index]
 }

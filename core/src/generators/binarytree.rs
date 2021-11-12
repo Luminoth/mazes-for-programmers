@@ -1,8 +1,7 @@
+use crate::util::sample;
 use crate::Grid;
 
 use super::Generator;
-
-use rand::Rng;
 
 /// BinaryTree maze generator
 /// Selects random N/E neighbors to link
@@ -15,8 +14,6 @@ pub struct BinaryTree;
 
 impl Generator for BinaryTree {
     fn generate(&self, rows: usize, cols: usize) -> Grid {
-        let mut rng = rand::thread_rng();
-
         let mut grid = Grid::new(rows, cols);
 
         let mut links = Vec::default();
@@ -36,9 +33,7 @@ impl Generator for BinaryTree {
             }
 
             // pick a random N/E neighbor to link
-            let index = rng.gen_range(0..neighbors.len());
-            let neighbor = neighbors[index];
-
+            let neighbor = *sample(&neighbors);
             links.push((cell.handle(), neighbor));
         }
 

@@ -7,7 +7,7 @@ use super::Generator;
 /// Perfect - Yes
 /// Uniform - Yes
 /// Bias - None
-/// Runtime - Long
+/// Runtime - Fast to start, slow to finish
 #[derive(Debug, Default)]
 pub struct AldousBroder;
 
