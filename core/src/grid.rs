@@ -239,6 +239,7 @@ impl Grid {
         &self,
         cell_size: usize,
         solver: Option<&impl Solver>,
+        color: bool,
     ) -> (usize, usize, Vec<u8>) {
         let wall = Color::new(0, 0, 0, 255);
 
@@ -255,9 +256,13 @@ impl Grid {
         for cell in self {
             let cell_handle = cell.handle();
 
-            let background = solver
-                .map(|solver| solver.cell_background(cell_handle.row, cell_handle.col))
-                .unwrap_or_else(|| Color::WHITE);
+            let background = if color {
+                solver
+                    .map(|solver| solver.cell_background(cell_handle.row, cell_handle.col))
+                    .unwrap_or_else(|| Color::WHITE)
+            } else {
+                Color::WHITE
+            };
 
             let x1 = cell.col * cell_size;
             let y1 = cell.row * cell_size;
@@ -302,16 +307,17 @@ impl Grid {
         (width, height, data)
     }
 
-    pub(crate) fn save_png_internal(
+    fn save_png(
         &self,
         path: impl AsRef<Path>,
         cell_size: usize,
         solver: Option<&impl Solver>,
+        color: bool,
     ) -> io::Result<()> {
         let file = fs::File::create(path)?;
         let w = io::BufWriter::new(file);
 
-        let (width, height, data) = self.generate_image(cell_size, solver);
+        let (width, height, data) = self.generate_image(cell_size, solver, color);
 
         let mut encoder = png::Encoder::new(w, width as u32, height as u32);
         encoder.set_color(png::ColorType::Rgba);
@@ -320,6 +326,34 @@ impl Grid {
 
         //debug!("data size: {}", data.len());
         writer.write_image_data(&data)?;
+
+        Ok(())
+    }
+
+    pub(crate) fn save_png_internal(
+        &self,
+        path: impl AsRef<Path>,
+        cell_size: usize,
+        solver: Option<&impl Solver>,
+    ) -> io::Result<()> {
+        let path = path.as_ref();
+
+        // save in greyscale
+        self.save_png(path, cell_size, solver, false)?;
+
+        // get the file name but with _color appended
+        let mut color_filename = path.file_stem().unwrap().to_os_string();
+        color_filename.push("-colored");
+
+        // build the color file path
+        let mut color_path = path.to_owned();
+        color_path.set_file_name(&color_filename);
+        if let Some(extension) = path.extension() {
+            color_path.set_extension(extension);
+        }
+
+        // save in color
+        self.save_png(color_path, cell_size, solver, true)?;
 
         Ok(())
     }
