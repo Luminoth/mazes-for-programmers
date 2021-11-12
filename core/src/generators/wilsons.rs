@@ -31,6 +31,9 @@ impl Generator for Wilsons {
             let mut cell_handle = *sample(&unvisited);
             let mut path = vec![cell_handle];
 
+            // random walk unvisited cells
+            // building a path between them
+            // erasing loops as we go
             while unvisited.contains(&cell_handle) {
                 cell_handle = {
                     let cell = grid.get(cell_handle.row, cell_handle.col).unwrap();
@@ -39,12 +42,14 @@ impl Generator for Wilsons {
 
                 let position = path.iter().position(|&c| c == cell_handle);
                 if let Some(position) = position {
+                    // we've hit a loop, so erase it
                     path.truncate(position + 1);
                 } else {
                     path.push(cell_handle);
                 }
             }
 
+            // carve the path
             for index in 0..=path.len() - 2 {
                 grid.link_cells(path[index], path[index + 1]);
 
