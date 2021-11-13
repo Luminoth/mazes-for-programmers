@@ -181,7 +181,7 @@ impl Grid {
         (digits, str::repeat(" ", digits))
     }
 
-    pub(crate) fn render_ascii_internal(&self, solver: Option<&impl Solver>) {
+    pub(crate) fn render_ascii_internal(&self, solver: Option<&impl Solver>) -> String {
         let (digits, empty) = self.empty_cell_contents();
         let mut output = format!(
             "+{}\n",
@@ -232,7 +232,7 @@ impl Grid {
             output.push('\n');
         }
 
-        println!("{}", output);
+        output
     }
 
     fn generate_image(
@@ -360,8 +360,8 @@ impl Grid {
 }
 
 impl Renderable for Grid {
-    fn render_ascii(&self) {
-        self.render_ascii_internal(None::<&crate::solvers::Djikstra>);
+    fn render_ascii(&self) -> String {
+        self.render_ascii_internal(None::<&crate::solvers::Djikstra>)
     }
 
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()> {

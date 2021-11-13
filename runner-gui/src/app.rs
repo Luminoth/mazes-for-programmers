@@ -1,5 +1,4 @@
 use std::fmt;
-use std::path::Path;
 use std::time::Instant;
 
 use derivative::Derivative;
@@ -10,7 +9,7 @@ use tracing::{debug, info};
 
 use mazecore::generators::*;
 use mazecore::solvers::*;
-use mazecore::{Grid, Renderable};
+use mazecore::Grid;
 
 #[derive(Debug, Copy, Clone, PartialEq, EnumIter, Derivative, Display)]
 #[derivative(Default)]
@@ -52,10 +51,10 @@ pub enum SolverType {
 }
 
 impl SolverType {
-    fn solver(&self, grid: Grid, root_row: usize, root_col: usize) -> Option<Box<dyn Solver>> {
+    fn solver(&self, grid: Grid, root_row: usize, root_col: usize) -> Box<dyn Solver> {
         match self {
-            SolverType::None => None,
-            SolverType::Djikstra => Some(Box::new(Djikstra::new(grid, root_row, root_col))),
+            SolverType::None => Box::new(NoneSolver::new(grid)),
+            SolverType::Djikstra => Box::new(Djikstra::new(grid, root_row, root_col)),
         }
     }
 }
@@ -72,7 +71,8 @@ pub struct RunnerApp {
     generator_type: GeneratorType,
     solver_type: SolverType,
 
-    maze: Option<Grid>,
+    maze_renderable: Option<Box<dyn Solver>>,
+    maze_ascii: String,
 }
 
 impl RunnerApp {
@@ -109,7 +109,6 @@ impl RunnerApp {
         // TODO: make this async / threaded and disable the button while generating
 
         if ui.button("Generate Maze").clicked() {
-            // TODO: this should generate to a grid that we render
             info!("Processing {}x{} maze ...", self.width, self.height);
 
             let generator = self.generator_type.generator();
@@ -134,35 +133,29 @@ impl RunnerApp {
                 (root, goal)
             };
 
-            if self.solver_type != SolverType::None {
-                let solver = self.solver_type.solver(grid, root.0, root.1).unwrap();
+            let solver = self.solver_type.solver(grid, root.0, root.1);
+            {
+                info!(
+                    "Running solver {} from {:?} to {:?} ...",
+                    self.solver_type, root, goal
+                );
 
-                {
-                    info!(
-                        "Running solver {} from {:?} to {:?} ...",
-                        self.solver_type, root, goal
-                    );
-
-                    let now = Instant::now();
-                    solver.solve(goal.0, goal.1);
-                    info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
-                }
-
-                render(&*solver);
-
-                self.maze = Some(solver.grid().clone());
-            } else {
-                render(&grid);
-
-                self.maze = Some(grid);
+                let now = Instant::now();
+                solver.solve(goal.0, goal.1);
+                info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
             }
+
+            self.maze_ascii = solver.render_ascii();
+            self.maze_renderable = Some(solver);
         }
     }
 
     fn add_save_button(&mut self, ui: &mut egui::Ui) {
         if ui.button("Save Maze").clicked() {
             /*let filename = ...;
-            if let Err(err) = save(&self.???, filename) {
+            info!("Saving to {:?} ...", filename.as_ref());
+
+            if let Err(err) = renderable.save_png(filename.as_ref(), 50) {
                 error!("{}", err);
             }*/
         }
@@ -182,29 +175,24 @@ impl epi::App for RunnerApp {
             ui.add(egui::Slider::new(&mut self.width, 1..=100).text("Width"));
             ui.add(egui::Slider::new(&mut self.height, 1..=100).text("Height"));
 
-            // TODO: the maze render should go here
-
             ui.horizontal(|ui| {
                 self.add_generate_button(ui);
                 self.add_save_button(ui);
             });
+
+            ui.separator();
+
+            // TODO: rendering as text is not what we ultimately want here
+            // but for now, is there a way to disable vertical wrapping on it?
+            egui::ScrollArea::both().show(ui, |ui| {
+                ui.add_sized(
+                    ui.available_size(),
+                    egui::TextEdit::multiline(&mut self.maze_ascii.as_str())
+                        .text_style(egui::TextStyle::Monospace),
+                );
+            });
+
+            // TODO: fix the scroll area height and move the buttons down here
         });
     }
-}
-
-fn render(renderable: &(impl Renderable + ?Sized)) {
-    println!();
-    renderable.render_ascii();
-    println!();
-}
-
-fn _save(
-    renderable: &(impl Renderable + ?Sized),
-    filename: impl AsRef<Path>,
-) -> anyhow::Result<()> {
-    info!("Saving to {:?} ...", filename.as_ref());
-
-    renderable.save_png(filename.as_ref(), 50)?;
-
-    Ok(())
 }

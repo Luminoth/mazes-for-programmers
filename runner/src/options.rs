@@ -33,12 +33,24 @@ impl GeneratorOption {
         }
     }
 
-    pub fn solver(&self) -> &Option<SolverOption> {
+    pub fn solver_type(&self) -> SolverOption {
         match self {
-            GeneratorOption::BinaryTree(generator) => &generator.solver,
-            GeneratorOption::Sidewinder(generator) => &generator.solver,
-            GeneratorOption::AldousBroder(generator) => &generator.solver,
-            GeneratorOption::Wilsons(generator) => &generator.solver,
+            GeneratorOption::BinaryTree(generator) => generator
+                .solver
+                .clone()
+                .unwrap_or_else(|| SolverOption::None(NoneSolver {})),
+            GeneratorOption::Sidewinder(generator) => generator
+                .solver
+                .clone()
+                .unwrap_or_else(|| SolverOption::None(NoneSolver {})),
+            GeneratorOption::AldousBroder(generator) => generator
+                .solver
+                .clone()
+                .unwrap_or_else(|| SolverOption::None(NoneSolver {})),
+            GeneratorOption::Wilsons(generator) => generator
+                .solver
+                .clone()
+                .unwrap_or_else(|| SolverOption::None(NoneSolver {})),
         }
     }
 }
@@ -79,9 +91,12 @@ pub struct WilsonsGenerator {
     pub solver: Option<SolverOption>,
 }
 
-#[derive(FromArgs, PartialEq, Debug, Display)]
+#[derive(FromArgs, PartialEq, Debug, Display, Clone)]
 #[argh(subcommand)]
 pub enum SolverOption {
+    #[display(fmt = "None")]
+    None(NoneSolver),
+
     #[display(fmt = "Djikstra")]
     Djikstra(DjikstraSolver),
 }
@@ -89,12 +104,18 @@ pub enum SolverOption {
 impl SolverOption {
     pub fn solver(&self, grid: Grid, root_row: usize, root_col: usize) -> Box<dyn Solver> {
         match self {
+            SolverOption::None(_) => Box::new(mazecore::solvers::NoneSolver::new(grid)),
             SolverOption::Djikstra(_) => Box::new(Djikstra::new(grid, root_row, root_col)),
         }
     }
 }
 
-#[derive(FromArgs, PartialEq, Debug)]
+#[derive(FromArgs, PartialEq, Debug, Clone)]
+/// Solver that doesn't solve anything
+#[argh(subcommand, name = "none")]
+pub struct NoneSolver {}
+
+#[derive(FromArgs, PartialEq, Debug, Clone)]
 /// Simple Djikstra's algorithm solver
 #[argh(subcommand, name = "djikstra")]
 pub struct DjikstraSolver {}
@@ -114,7 +135,7 @@ pub struct Options {
     #[argh(option, default = "20")]
     pub height: usize,
 
-    /// filename to write to
+    /// filename to render to
     #[argh(option)]
     pub filename: Option<PathBuf>,
 }

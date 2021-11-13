@@ -128,8 +128,8 @@ impl Solver for Djikstra {
 }
 
 impl Renderable for Djikstra {
-    fn render_ascii(&self) {
-        self.grid.render_ascii_internal(Some(self));
+    fn render_ascii(&self) -> String {
+        self.grid.render_ascii_internal(Some(self))
     }
 
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()> {

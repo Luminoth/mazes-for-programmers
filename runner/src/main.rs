@@ -6,7 +6,7 @@ use std::time::Instant;
 use tracing::{debug, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
-use mazecore::Renderable;
+use mazecore::solvers::Solver;
 
 use options::Options;
 
@@ -20,18 +20,13 @@ fn init_logging() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn render(
-    renderable: &(impl Renderable + ?Sized),
-    filename: &Option<impl AsRef<Path>>,
-) -> anyhow::Result<()> {
-    println!();
-    renderable.render_ascii();
-    println!();
+fn render(solver: &dyn Solver, filename: &Option<impl AsRef<Path>>) -> anyhow::Result<()> {
+    println!("\n{}\n", solver.render_ascii());
 
     if let Some(filename) = filename {
         info!("Saving to {:?} ...", filename.as_ref());
 
-        renderable.save_png(filename.as_ref(), 50)?;
+        solver.save_png(filename.as_ref(), 50)?;
     }
 
     Ok(())
@@ -66,26 +61,21 @@ fn main() -> anyhow::Result<()> {
         (root, goal)
     };
 
-    let solver = options.generator.solver();
-    if let Some(solver) = solver {
-        let solver = solver.solver(grid, root.0, root.1);
-        {
-            info!(
-                "Running solver {} from {:?} to {:?} ...",
-                options.generator.solver().as_ref().unwrap(),
-                root,
-                goal
-            );
+    let solver = options.generator.solver_type().solver(grid, root.0, root.1);
+    {
+        info!(
+            "Running solver {} from {:?} to {:?} ...",
+            options.generator.solver_type(),
+            root,
+            goal
+        );
 
-            let now = Instant::now();
-            solver.solve(goal.0, goal.1);
-            info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
-        }
-
-        render(&*solver, &options.filename)?;
-    } else {
-        render(&grid, &options.filename)?;
+        let now = Instant::now();
+        solver.solve(goal.0, goal.1);
+        info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
     }
+
+    render(&*solver, &options.filename)?;
 
     Ok(())
 }
