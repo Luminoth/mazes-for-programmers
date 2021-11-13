@@ -6,7 +6,7 @@ use std::time::Instant;
 use tracing::{debug, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
-use core::Renderable;
+use mazecore::Renderable;
 
 use options::Options;
 
@@ -46,7 +46,7 @@ fn main() -> anyhow::Result<()> {
 
     let generator = options.generator.generator();
     let grid = {
-        info!("Running maze generator {:?} ...", options.generator);
+        info!("Running maze generator {} ...", options.generator);
 
         let now = Instant::now();
         let grid = generator.generate(options.height, options.width);
@@ -71,8 +71,8 @@ fn main() -> anyhow::Result<()> {
         let solver = solver.solver(grid, root.0, root.1);
         {
             info!(
-                "Running solver {:?} from {:?} to {:?} ...",
-                options.generator.solver(),
+                "Running solver {} from {:?} to {:?} ...",
+                options.generator.solver().as_ref().unwrap(),
                 root,
                 goal
             );

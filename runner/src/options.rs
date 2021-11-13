@@ -1,17 +1,25 @@
 use std::path::PathBuf;
 
 use argh::FromArgs;
+use derive_more::Display;
 
-use core::generators::{AldousBroder, BinaryTree, Generator, Sidewinder, Wilsons};
-use core::solvers::{Djikstra, Solver};
-use core::Grid;
+use mazecore::generators::*;
+use mazecore::solvers::*;
+use mazecore::Grid;
 
-#[derive(FromArgs, PartialEq, Debug)]
+#[derive(FromArgs, PartialEq, Debug, Display)]
 #[argh(subcommand)]
 pub enum GeneratorOption {
+    #[display(fmt = "Binary Tree")]
     BinaryTree(BinaryTreeGenerator),
+
+    #[display(fmt = "Sidewinder")]
     Sidewinder(SidewinderGenerator),
+
+    #[display(fmt = "Aldous-Broder")]
     AldousBroder(AldousBroderGenerator),
+
+    #[display(fmt = "Wilson's Algorithm")]
     Wilsons(WilsonsGenerator),
 }
 
@@ -71,9 +79,10 @@ pub struct WilsonsGenerator {
     pub solver: Option<SolverOption>,
 }
 
-#[derive(FromArgs, PartialEq, Debug)]
+#[derive(FromArgs, PartialEq, Debug, Display)]
 #[argh(subcommand)]
 pub enum SolverOption {
+    #[display(fmt = "Djikstra")]
     Djikstra(DjikstraSolver),
 }
 
