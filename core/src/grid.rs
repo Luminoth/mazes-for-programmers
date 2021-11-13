@@ -11,7 +11,7 @@ use rand::Rng;
 //use tracing::debug;
 
 /// Grid-based maze data structure
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Grid {
     rows: usize,
     cols: usize,

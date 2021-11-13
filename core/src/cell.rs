@@ -29,7 +29,7 @@ impl From<(usize, usize)> for CellHandle {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Cell {
     pub row: usize,
     pub col: usize,
