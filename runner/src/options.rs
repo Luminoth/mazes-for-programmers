@@ -7,6 +7,8 @@ use mazecore::generators::*;
 use mazecore::solvers::*;
 use mazecore::Grid;
 
+// TODO: all of this would be cleaner with macros
+
 #[derive(FromArgs, PartialEq, Debug, Display)]
 #[argh(subcommand)]
 pub enum GeneratorOption {
@@ -21,6 +23,9 @@ pub enum GeneratorOption {
 
     #[display(fmt = "Wilson's Algorithm")]
     Wilsons(WilsonsGenerator),
+
+    #[display(fmt = "Hunt-and-Kill")]
+    HuntAndKill(HuntAndKillGenerator),
 }
 
 impl GeneratorOption {
@@ -30,6 +35,7 @@ impl GeneratorOption {
             GeneratorOption::Sidewinder(_) => Box::new(Sidewinder::default()),
             GeneratorOption::AldousBroder(_) => Box::new(AldousBroder::default()),
             GeneratorOption::Wilsons(_) => Box::new(Wilsons::default()),
+            GeneratorOption::HuntAndKill(_) => Box::new(HuntAndKill::default()),
         }
     }
 
@@ -38,19 +44,23 @@ impl GeneratorOption {
             GeneratorOption::BinaryTree(generator) => generator
                 .solver
                 .clone()
-                .unwrap_or_else(|| SolverOption::None(NoneSolver {})),
+                .unwrap_or(SolverOption::None(NoneSolver {})),
             GeneratorOption::Sidewinder(generator) => generator
                 .solver
                 .clone()
-                .unwrap_or_else(|| SolverOption::None(NoneSolver {})),
+                .unwrap_or(SolverOption::None(NoneSolver {})),
             GeneratorOption::AldousBroder(generator) => generator
                 .solver
                 .clone()
-                .unwrap_or_else(|| SolverOption::None(NoneSolver {})),
+                .unwrap_or(SolverOption::None(NoneSolver {})),
             GeneratorOption::Wilsons(generator) => generator
                 .solver
                 .clone()
-                .unwrap_or_else(|| SolverOption::None(NoneSolver {})),
+                .unwrap_or(SolverOption::None(NoneSolver {})),
+            GeneratorOption::HuntAndKill(generator) => generator
+                .solver
+                .clone()
+                .unwrap_or(SolverOption::None(NoneSolver {})),
         }
     }
 }
@@ -86,6 +96,15 @@ pub struct AldousBroderGenerator {
 /// Binary tree generator
 #[argh(subcommand, name = "wilsons")]
 pub struct WilsonsGenerator {
+    /// solver to run
+    #[argh(subcommand)]
+    pub solver: Option<SolverOption>,
+}
+
+#[derive(FromArgs, PartialEq, Debug)]
+/// Binary tree generator
+#[argh(subcommand, name = "huntandkill")]
+pub struct HuntAndKillGenerator {
     /// solver to run
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,

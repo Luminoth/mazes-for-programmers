@@ -1,5 +1,6 @@
 pub mod aldous_broder;
 pub mod binarytree;
+pub mod hunt_and_kill;
 pub mod sidewinder;
 pub mod wilsons;
 
@@ -7,6 +8,7 @@ use crate::Grid;
 
 pub use aldous_broder::*;
 pub use binarytree::*;
+pub use hunt_and_kill::*;
 pub use sidewinder::*;
 pub use wilsons::*;
 

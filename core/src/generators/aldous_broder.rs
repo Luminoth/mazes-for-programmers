@@ -3,7 +3,7 @@ use crate::Grid;
 use super::Generator;
 
 /// Aldous-Broder maze generator
-/// Selects random cells to visit until all of them are visited
+/// Selects random cells, including cells already visited, to visit until all of them are visited
 /// Perfect - Yes
 /// Uniform - Yes
 /// Bias - None

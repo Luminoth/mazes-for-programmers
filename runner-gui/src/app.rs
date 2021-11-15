@@ -11,6 +11,8 @@ use mazecore::generators::*;
 use mazecore::solvers::*;
 use mazecore::Grid;
 
+// TODO: all of this would be cleaner with macros
+
 #[derive(Debug, Copy, Clone, PartialEq, EnumIter, Derivative, Display)]
 #[derivative(Default)]
 pub enum GeneratorType {
@@ -26,6 +28,9 @@ pub enum GeneratorType {
 
     #[display(fmt = "Wilson's Algorithm")]
     Wilsons,
+
+    #[display(fmt = "Hunt-and-Kill")]
+    HuntAndKill,
 }
 
 impl GeneratorType {
@@ -35,6 +40,7 @@ impl GeneratorType {
             GeneratorType::Sidewinder => Box::new(Sidewinder::default()),
             GeneratorType::AldousBroder => Box::new(AldousBroder::default()),
             GeneratorType::Wilsons => Box::new(Wilsons::default()),
+            GeneratorType::HuntAndKill => Box::new(HuntAndKill::default()),
         }
     }
 }
