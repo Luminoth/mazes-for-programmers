@@ -78,6 +78,10 @@ pub struct RunnerApp {
     solver_type: SolverType,
 
     maze_renderable: Option<Box<dyn Solver>>,
+    dead_ends: usize,
+    generate_time: f64,
+    longest_path_time: f64,
+    solve_time: f64,
     maze_ascii: String,
 }
 
@@ -123,20 +127,18 @@ impl RunnerApp {
 
                 let now = Instant::now();
                 let grid = generator.generate(self.height, self.width);
-                info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+                self.generate_time = now.elapsed().as_secs_f64() * 1000.0;
 
                 grid
             };
             debug!("{:?}", grid);
-
-            info!("Dead ends: {}", grid.get_dead_ends().len());
 
             let (root, goal) = {
                 info!("Finding longest path ...");
 
                 let now = Instant::now();
                 let (root, goal) = grid.longest_path();
-                info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+                self.longest_path_time = now.elapsed().as_secs_f64() * 1000.0;
 
                 (root, goal)
             };
@@ -152,10 +154,11 @@ impl RunnerApp {
 
                 let now = Instant::now();
                 solver.solve(goal.0, goal.1);
-                info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+                self.solve_time = now.elapsed().as_secs_f64() * 1000.0;
             }
 
             self.maze_ascii = solver.render_ascii();
+            self.dead_ends = solver.grid().get_dead_ends().len();
             self.maze_renderable = Some(solver);
         }
     }
@@ -191,6 +194,16 @@ impl epi::App for RunnerApp {
             });
 
             ui.separator();
+
+            //ui.horizontal(|ui| {
+            ui.label(format!("Dead ends: {}", self.dead_ends));
+            ui.label(format!("Generate time: {:.2}ms", self.generate_time));
+            ui.label(format!(
+                "Longest path time: {:.2}ms",
+                self.longest_path_time
+            ));
+            ui.label(format!("Solve time: {:.2}ms", self.solve_time));
+            //});
 
             // TODO: rendering as text is not what we ultimately want here
             // but for now, is there a way to disable vertical wrapping on it?
