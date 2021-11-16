@@ -13,6 +13,10 @@ use crate::util::sample;
 pub struct HuntAndKill;
 
 impl Generator for HuntAndKill {
+    fn name(&self) -> &str {
+        "Hunt-and-Kill"
+    }
+
     fn generate(&self, rows: usize, cols: usize) -> Grid {
         let mut grid = Grid::new(rows, cols);
 

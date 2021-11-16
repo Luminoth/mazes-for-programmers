@@ -13,6 +13,10 @@ use super::Generator;
 pub struct Wilsons;
 
 impl Generator for Wilsons {
+    fn name(&self) -> &str {
+        "Wilson's"
+    }
+
     fn generate(&self, rows: usize, cols: usize) -> Grid {
         let mut grid = Grid::new(rows, cols);
 

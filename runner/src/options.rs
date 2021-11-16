@@ -12,6 +12,9 @@ use mazecore::Grid;
 #[derive(FromArgs, PartialEq, Debug, Display)]
 #[argh(subcommand)]
 pub enum GeneratorOption {
+    #[display(fmt = "Analysis")]
+    Analysis(AnalysisCommand),
+
     #[display(fmt = "Binary Tree")]
     BinaryTree(BinaryTreeGenerator),
 
@@ -29,8 +32,13 @@ pub enum GeneratorOption {
 }
 
 impl GeneratorOption {
+    pub fn is_analysis(&self) -> bool {
+        matches!(self, GeneratorOption::Analysis(_))
+    }
+
     pub fn generator(&self) -> Box<dyn Generator> {
         match self {
+            GeneratorOption::Analysis(_) => Box::new(NoneGenerator::default()),
             GeneratorOption::BinaryTree(_) => Box::new(BinaryTree::default()),
             GeneratorOption::Sidewinder(_) => Box::new(Sidewinder::default()),
             GeneratorOption::AldousBroder(_) => Box::new(AldousBroder::default()),
@@ -41,6 +49,7 @@ impl GeneratorOption {
 
     pub fn solver_type(&self) -> SolverOption {
         match self {
+            GeneratorOption::Analysis(_) => SolverOption::None(NoneSolver {}),
             GeneratorOption::BinaryTree(generator) => generator
                 .solver
                 .clone()
@@ -66,6 +75,11 @@ impl GeneratorOption {
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
+/// Run generator analysis
+#[argh(subcommand, name = "analysis")]
+pub struct AnalysisCommand {}
+
+#[derive(FromArgs, PartialEq, Debug)]
 /// Binary tree generator
 #[argh(subcommand, name = "binarytree")]
 pub struct BinaryTreeGenerator {
@@ -84,7 +98,7 @@ pub struct SidewinderGenerator {
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Binary tree generator
+/// Aldous-Broder generator
 #[argh(subcommand, name = "aldousbroder")]
 pub struct AldousBroderGenerator {
     /// solver to run
@@ -93,7 +107,7 @@ pub struct AldousBroderGenerator {
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Binary tree generator
+/// Wilson's algorithm generator
 #[argh(subcommand, name = "wilsons")]
 pub struct WilsonsGenerator {
     /// solver to run
@@ -102,7 +116,7 @@ pub struct WilsonsGenerator {
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
-/// Binary tree generator
+/// Hunt-and-Kill generator
 #[argh(subcommand, name = "huntandkill")]
 pub struct HuntAndKillGenerator {
     /// solver to run

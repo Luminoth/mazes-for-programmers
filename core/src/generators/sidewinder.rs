@@ -13,6 +13,10 @@ use super::Generator;
 pub struct Sidewinder;
 
 impl Generator for Sidewinder {
+    fn name(&self) -> &str {
+        "Sidewinder"
+    }
+
     fn generate(&self, rows: usize, cols: usize) -> Grid {
         let mut grid = Grid::new(rows, cols);
 

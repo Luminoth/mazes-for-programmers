@@ -12,6 +12,10 @@ use super::Generator;
 pub struct AldousBroder;
 
 impl Generator for AldousBroder {
+    fn name(&self) -> &str {
+        "Aldous-Broder"
+    }
+
     fn generate(&self, rows: usize, cols: usize) -> Grid {
         let mut grid = Grid::new(rows, cols);
 

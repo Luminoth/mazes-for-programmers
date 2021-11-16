@@ -15,6 +15,22 @@ pub use wilsons::*;
 /// All maze generators implement this trait
 // TODO: use an enum instead of a trait
 pub trait Generator {
+    fn name(&self) -> &str;
+
     /// Generates a new grid-based maze
     fn generate(&self, rows: usize, cols: usize) -> Grid;
+}
+
+/// Generator that doesn't generate anything
+#[derive(Debug, Default)]
+pub struct NoneGenerator;
+
+impl Generator for NoneGenerator {
+    fn name(&self) -> &str {
+        "None"
+    }
+
+    fn generate(&self, rows: usize, cols: usize) -> Grid {
+        Grid::new(rows, cols)
+    }
 }

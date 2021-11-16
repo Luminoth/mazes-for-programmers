@@ -1,3 +1,4 @@
+mod analysis;
 mod options;
 
 use std::path::Path;
@@ -37,11 +38,16 @@ fn main() -> anyhow::Result<()> {
 
     let options: Options = argh::from_env();
 
-    info!("Processing {}x{} maze ...", options.width, options.height);
+    if options.generator.is_analysis() {
+        analysis::run(options.width, options.height, 100);
+        return Ok(());
+    }
+
+    info!("Generating {}x{} maze ...", options.height, options.width);
 
     let generator = options.generator.generator();
     let grid = {
-        info!("Running maze generator {} ...", options.generator);
+        info!("Running maze generator {} ...", generator.name());
 
         let now = Instant::now();
         let grid = generator.generate(options.height, options.width);
@@ -50,6 +56,8 @@ fn main() -> anyhow::Result<()> {
         grid
     };
     debug!("{:?}", grid);
+
+    info!("Dead ends: {}", grid.get_dead_ends().len());
 
     let (root, goal) = {
         info!("Finding longest path ...");
@@ -65,7 +73,7 @@ fn main() -> anyhow::Result<()> {
     {
         info!(
             "Running solver {} from {:?} to {:?} ...",
-            options.generator.solver_type(),
+            solver.name(),
             root,
             goal
         );

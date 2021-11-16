@@ -86,8 +86,16 @@ impl Grid {
         self.cols
     }
 
+    /// The number of cells in the grid
     pub fn size(&self) -> usize {
         self.rows * self.cols
+    }
+
+    /// Set of dead end cells (cells with only one link) in the grid
+    pub fn get_dead_ends(&self) -> Vec<&Cell> {
+        self.iter()
+            .filter(|&cell| cell.links().len() == 1)
+            .collect()
     }
 
     /// Gets a reference to the given cell if it exists

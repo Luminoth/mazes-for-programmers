@@ -115,11 +115,11 @@ impl RunnerApp {
         // TODO: make this async / threaded and disable the button while generating
 
         if ui.button("Generate Maze").clicked() {
-            info!("Processing {}x{} maze ...", self.width, self.height);
+            info!("Generating {}x{} maze ...", self.width, self.height);
 
             let generator = self.generator_type.generator();
             let grid = {
-                info!("Running maze generator {} ...", self.generator_type);
+                info!("Running maze generator {} ...", generator.name());
 
                 let now = Instant::now();
                 let grid = generator.generate(self.height, self.width);
@@ -128,6 +128,8 @@ impl RunnerApp {
                 grid
             };
             debug!("{:?}", grid);
+
+            info!("Dead ends: {}", grid.get_dead_ends().len());
 
             let (root, goal) = {
                 info!("Finding longest path ...");
@@ -143,7 +145,9 @@ impl RunnerApp {
             {
                 info!(
                     "Running solver {} from {:?} to {:?} ...",
-                    self.solver_type, root, goal
+                    solver.name(),
+                    root,
+                    goal
                 );
 
                 let now = Instant::now();

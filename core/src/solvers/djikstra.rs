@@ -73,6 +73,10 @@ impl Djikstra {
 }
 
 impl Solver for Djikstra {
+    fn name(&self) -> &str {
+        "Djikstra"
+    }
+
     fn grid(&self) -> &Grid {
         &self.grid
     }

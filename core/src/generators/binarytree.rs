@@ -13,6 +13,10 @@ use super::Generator;
 pub struct BinaryTree;
 
 impl Generator for BinaryTree {
+    fn name(&self) -> &str {
+        "Binary Tree"
+    }
+
     fn generate(&self, rows: usize, cols: usize) -> Grid {
         let mut grid = Grid::new(rows, cols);
 

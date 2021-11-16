@@ -11,6 +11,8 @@ pub use djikstra::*;
 /// All maze solvers implement this trait
 // TODO: use an enum instead of a trait
 pub trait Solver: Renderable {
+    fn name(&self) -> &str;
+
     fn grid(&self) -> &Grid;
 
     /// Returns the solver-based contents of the given cell
@@ -41,6 +43,10 @@ impl NoneSolver {
 }
 
 impl Solver for NoneSolver {
+    fn name(&self) -> &str {
+        "None"
+    }
+
     fn grid(&self) -> &Grid {
         &self.grid
     }
