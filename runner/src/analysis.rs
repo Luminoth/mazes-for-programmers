@@ -7,12 +7,17 @@ use mazecore::generators::*;
 pub fn run(rows: usize, cols: usize, tries: usize) {
     let mut generators: Vec<Box<dyn Generator>> = vec![
         Box::new(BinaryTree::default()),
+        Box::new(BinaryTreeParallel::default()),
         Box::new(Sidewinder::default()),
+        Box::new(SidewinderParallel::default()),
         Box::new(AldousBroder::default()),
         Box::new(Wilsons::default()),
         Box::new(HuntAndKill::default()),
         Box::new(RecursiveBacktracker::default()),
     ];
+
+    // TODO: run timing analysis
+    // TODO: can we also run mem usage analysis?
 
     let mut averages = HashMap::new();
     for generator in &generators {

@@ -1,17 +1,21 @@
 pub mod aldous_broder;
 pub mod binarytree;
+pub mod binarytree_par;
 pub mod hunt_and_kill;
 pub mod recursive_backtracker;
 pub mod sidewinder;
+pub mod sidewinder_par;
 pub mod wilsons;
 
 use crate::Grid;
 
 pub use aldous_broder::*;
 pub use binarytree::*;
+pub use binarytree_par::*;
 pub use hunt_and_kill::*;
 pub use recursive_backtracker::*;
 pub use sidewinder::*;
+pub use sidewinder_par::*;
 pub use wilsons::*;
 
 /// All maze generators implement this trait

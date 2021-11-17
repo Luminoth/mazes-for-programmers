@@ -42,8 +42,20 @@ impl GeneratorOption {
     pub fn generator(&self) -> Box<dyn Generator> {
         match self {
             GeneratorOption::Analysis(_) => Box::new(NoneGenerator::default()),
-            GeneratorOption::BinaryTree(_) => Box::new(BinaryTree::default()),
-            GeneratorOption::Sidewinder(_) => Box::new(Sidewinder::default()),
+            GeneratorOption::BinaryTree(generator) => {
+                if generator.parallel {
+                    Box::new(BinaryTreeParallel::default())
+                } else {
+                    Box::new(BinaryTree::default())
+                }
+            }
+            GeneratorOption::Sidewinder(generator) => {
+                if generator.parallel {
+                    Box::new(SidewinderParallel::default())
+                } else {
+                    Box::new(Sidewinder::default())
+                }
+            }
             GeneratorOption::AldousBroder(_) => Box::new(AldousBroder::default()),
             GeneratorOption::Wilsons(_) => Box::new(Wilsons::default()),
             GeneratorOption::HuntAndKill(_) => Box::new(HuntAndKill::default()),
@@ -94,6 +106,10 @@ pub struct BinaryTreeGenerator {
     /// solver to run
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
+
+    /// run the parallelized generator
+    #[argh(switch)]
+    pub parallel: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -103,6 +119,10 @@ pub struct SidewinderGenerator {
     /// solver to run
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
+
+    /// run the parallelized generator
+    #[argh(switch)]
+    pub parallel: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -184,6 +204,10 @@ pub struct Options {
     /// grid height
     #[argh(option, default = "20")]
     pub height: usize,
+
+    /// don't render the grid
+    #[argh(switch)]
+    pub norender: bool,
 
     /// filename to render to
     #[argh(option)]

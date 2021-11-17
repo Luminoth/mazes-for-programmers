@@ -20,8 +20,14 @@ pub enum GeneratorType {
     #[display(fmt = "Binary Tree")]
     BinaryTree,
 
+    #[display(fmt = "Binary Tree (Parallel)")]
+    BinaryTreeParallel,
+
     #[display(fmt = "Sidewinder")]
     Sidewinder,
+
+    #[display(fmt = "Sidewinder (Parallel)")]
+    SidewinderParallel,
 
     #[display(fmt = "Aldous-Broder")]
     AldousBroder,
@@ -40,7 +46,9 @@ impl GeneratorType {
     fn generator(&self) -> Box<dyn Generator> {
         match self {
             GeneratorType::BinaryTree => Box::new(BinaryTree::default()),
+            GeneratorType::BinaryTreeParallel => Box::new(BinaryTreeParallel::default()),
             GeneratorType::Sidewinder => Box::new(Sidewinder::default()),
+            GeneratorType::SidewinderParallel => Box::new(SidewinderParallel::default()),
             GeneratorType::AldousBroder => Box::new(AldousBroder::default()),
             GeneratorType::Wilsons => Box::new(Wilsons::default()),
             GeneratorType::HuntAndKill => Box::new(HuntAndKill::default()),
@@ -189,8 +197,8 @@ impl epi::App for RunnerApp {
             self.add_generators_select(ui);
             self.add_solvers_select(ui);
 
-            ui.add(egui::Slider::new(&mut self.width, 1..=100).text("Width"));
-            ui.add(egui::Slider::new(&mut self.height, 1..=100).text("Height"));
+            ui.add(egui::Slider::new(&mut self.width, 1..=500).text("Width"));
+            ui.add(egui::Slider::new(&mut self.height, 1..=500).text("Height"));
 
             ui.horizontal(|ui| {
                 self.add_generate_button(ui);

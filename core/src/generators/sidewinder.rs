@@ -1,5 +1,5 @@
 use crate::util::{coin, sample};
-use crate::Grid;
+use crate::{Cell, CellHandle, Grid};
 
 use super::Generator;
 
@@ -12,6 +12,37 @@ use super::Generator;
 #[derive(Debug, Default)]
 pub struct Sidewinder;
 
+impl Sidewinder {
+    pub(crate) fn link(
+        grid: &Grid,
+        cell: &Cell,
+        run: &mut Vec<CellHandle>,
+    ) -> Option<(CellHandle, CellHandle)> {
+        let cell_handle = cell.handle();
+        run.push(cell_handle);
+
+        let at_eastern_boundary = cell.east.is_none();
+        let at_northern_boundary = cell.north.is_none();
+
+        // close out a run either at the eastern border
+        // or randomly within a row, except at the northern border
+        let should_close_out = at_eastern_boundary || (!at_northern_boundary && coin());
+
+        if should_close_out {
+            let member_handle = *sample(run);
+            let member = grid.get(member_handle.row, member_handle.col).unwrap();
+            if let Some(north) = member.north {
+                return Some((member_handle, north));
+            }
+            run.clear();
+        } else {
+            return Some((cell_handle, cell.east.unwrap()));
+        }
+
+        None
+    }
+}
+
 impl Generator for Sidewinder {
     fn name(&self) -> &str {
         "Sidewinder"
@@ -20,34 +51,16 @@ impl Generator for Sidewinder {
     fn generate(&self, rows: usize, cols: usize) -> Grid {
         let mut grid = Grid::new(rows, cols);
 
-        let mut links = Vec::default();
-        for row in grid.rows_iter() {
-            let mut run = Vec::new();
-
-            for cell in row {
-                let cell_handle = cell.handle();
-
-                run.push(cell_handle);
-
-                let at_eastern_boundary = cell.east.is_none();
-                let at_northern_boundary = cell.north.is_none();
-
-                // close out a run either at the eastern border
-                // or randomly within a row, except at the northern border
-                let should_close_out = at_eastern_boundary || (!at_northern_boundary && coin());
-
-                if should_close_out {
-                    let member_handle = *sample(&run);
-                    let member = grid.get(member_handle.row, member_handle.col).unwrap();
-                    if let Some(north) = member.north {
-                        links.push((member_handle, north));
-                    }
-                    run.clear();
-                } else {
-                    links.push((cell_handle, cell.east.unwrap()));
-                }
-            }
-        }
+        let links = grid
+            .rows_iter()
+            .map(|row| {
+                let mut run = Vec::new();
+                row.iter()
+                    .filter_map(|cell| Self::link(&grid, cell, &mut run))
+                    .collect::<Vec<(CellHandle, CellHandle)>>()
+            })
+            .flatten()
+            .collect::<Vec<(CellHandle, CellHandle)>>();
 
         for link in links {
             grid.link_cells(link.0, link.1);

@@ -3,12 +3,12 @@ use std::io;
 use std::iter::Iterator;
 use std::path::Path;
 
+use rand::Rng;
+//use tracing::debug;
+
 use crate::solvers::Solver;
 use crate::util::{horizontal_line, quad, vertical_line, Color};
 use crate::{Cell, CellHandle, Renderable};
-
-use rand::Rng;
-//use tracing::debug;
 
 /// Grid-based maze data structure
 #[derive(Debug, Clone)]
@@ -155,6 +155,12 @@ impl Grid {
 
         if let Some(b) = self.get_mut(b.row, b.col) {
             b.link(a);
+        }
+    }
+
+    pub(crate) fn link_cells_multi(&mut self, links: impl AsRef<[(CellHandle, CellHandle)]>) {
+        for link in links.as_ref() {
+            self.link_cells(link.0, link.1);
         }
     }
 

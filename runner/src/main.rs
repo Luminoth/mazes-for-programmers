@@ -83,7 +83,9 @@ fn main() -> anyhow::Result<()> {
         info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
     }
 
-    render(&*solver, &options.filename)?;
+    if !options.norender {
+        render(&*solver, &options.filename)?;
+    }
 
     Ok(())
 }
