@@ -31,6 +31,9 @@ pub enum GeneratorType {
 
     #[display(fmt = "Hunt-and-Kill")]
     HuntAndKill,
+
+    #[display(fmt = "Recursive Backtracker")]
+    RecursiveBacktracker,
 }
 
 impl GeneratorType {
@@ -41,6 +44,7 @@ impl GeneratorType {
             GeneratorType::AldousBroder => Box::new(AldousBroder::default()),
             GeneratorType::Wilsons => Box::new(Wilsons::default()),
             GeneratorType::HuntAndKill => Box::new(HuntAndKill::default()),
+            GeneratorType::RecursiveBacktracker => Box::new(RecursiveBacktracker::default()),
         }
     }
 }
@@ -96,7 +100,7 @@ impl RunnerApp {
     fn add_generators_select(&mut self, ui: &mut egui::Ui) {
         egui::ComboBox::from_label("Maze Generator")
             .selected_text(format!("{}", self.generator_type))
-            .width(130.0)
+            .width(150.0)
             .show_ui(ui, |ui| {
                 for generator_type in GeneratorType::iter() {
                     RunnerApp::add_selection(generator_type, ui, &mut self.generator_type);
@@ -107,7 +111,7 @@ impl RunnerApp {
     fn add_solvers_select(&mut self, ui: &mut egui::Ui) {
         egui::ComboBox::from_label("Maze Solver")
             .selected_text(format!("{}", self.solver_type))
-            .width(130.0)
+            .width(150.0)
             .show_ui(ui, |ui| {
                 for solver_type in SolverType::iter() {
                     RunnerApp::add_selection(solver_type, ui, &mut self.solver_type);

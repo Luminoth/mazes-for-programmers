@@ -4,11 +4,13 @@ use super::Generator;
 use crate::util::sample;
 
 /// Hunt-and-Kill maze generator
-/// Selects random unvisited cells to visit until all of them are visited
+/// Selects random unvisited cells to visit until all of them are visited,
+/// hunting for unvisited cells when a loop is detected
 /// Perfect - Yes
 /// Uniform - No
 /// Bias - Yes
 /// Runtime - Fast
+/// Slower than Recursive Backtracker but more memory efficient
 #[derive(Debug, Default)]
 pub struct HuntAndKill;
 

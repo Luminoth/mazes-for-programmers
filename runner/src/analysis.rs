@@ -11,6 +11,7 @@ pub fn run(rows: usize, cols: usize, tries: usize) {
         Box::new(AldousBroder::default()),
         Box::new(Wilsons::default()),
         Box::new(HuntAndKill::default()),
+        Box::new(RecursiveBacktracker::default()),
     ];
 
     let mut averages = HashMap::new();
@@ -46,7 +47,7 @@ pub fn run(rows: usize, cols: usize, tries: usize) {
         let average = averages[generator.name()];
         let percentage = average * 100.0 / size as f32;
         info!(
-            "{:14}: {:3} / {} ({}%)",
+            "{:22}: {:3} / {} ({}%)",
             generator.name(),
             average as usize,
             size,

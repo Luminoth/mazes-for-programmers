@@ -29,6 +29,9 @@ pub enum GeneratorOption {
 
     #[display(fmt = "Hunt-and-Kill")]
     HuntAndKill(HuntAndKillGenerator),
+
+    #[display(fmt = "Recursive Backtracker")]
+    RecursiveBacktracker(RecursiveBacktrackerGenerator),
 }
 
 impl GeneratorOption {
@@ -44,6 +47,7 @@ impl GeneratorOption {
             GeneratorOption::AldousBroder(_) => Box::new(AldousBroder::default()),
             GeneratorOption::Wilsons(_) => Box::new(Wilsons::default()),
             GeneratorOption::HuntAndKill(_) => Box::new(HuntAndKill::default()),
+            GeneratorOption::RecursiveBacktracker(_) => Box::new(RecursiveBacktracker::default()),
         }
     }
 
@@ -67,6 +71,10 @@ impl GeneratorOption {
                 .clone()
                 .unwrap_or(SolverOption::None(NoneSolver {})),
             GeneratorOption::HuntAndKill(generator) => generator
+                .solver
+                .clone()
+                .unwrap_or(SolverOption::None(NoneSolver {})),
+            GeneratorOption::RecursiveBacktracker(generator) => generator
                 .solver
                 .clone()
                 .unwrap_or(SolverOption::None(NoneSolver {})),
@@ -119,6 +127,15 @@ pub struct WilsonsGenerator {
 /// Hunt-and-Kill generator
 #[argh(subcommand, name = "huntandkill")]
 pub struct HuntAndKillGenerator {
+    /// solver to run
+    #[argh(subcommand)]
+    pub solver: Option<SolverOption>,
+}
+
+#[derive(FromArgs, PartialEq, Debug)]
+/// Hunt-and-Kill generator
+#[argh(subcommand, name = "recursivebacktracker")]
+pub struct RecursiveBacktrackerGenerator {
     /// solver to run
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,

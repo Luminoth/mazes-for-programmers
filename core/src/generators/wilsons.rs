@@ -14,7 +14,7 @@ pub struct Wilsons;
 
 impl Generator for Wilsons {
     fn name(&self) -> &str {
-        "Wilson's"
+        "Wilson's Algorithm"
     }
 
     fn generate(&self, rows: usize, cols: usize) -> Grid {
