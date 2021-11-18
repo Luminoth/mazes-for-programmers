@@ -51,7 +51,7 @@ fn main() -> anyhow::Result<()> {
 
         let now = Instant::now();
         let grid = generator.generate(options.height, options.width);
-        info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+        info!("{:.2}ms", now.elapsed().as_secs_f64() * 1000.0);
 
         grid
     };
@@ -64,7 +64,7 @@ fn main() -> anyhow::Result<()> {
 
         let now = Instant::now();
         let (root, goal) = grid.longest_path();
-        info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+        info!("{:.2}ms", now.elapsed().as_secs_f64() * 1000.0);
 
         (root, goal)
     };
@@ -80,7 +80,7 @@ fn main() -> anyhow::Result<()> {
 
         let now = Instant::now();
         solver.solve(goal.0, goal.1);
-        info!("{}ms", now.elapsed().as_secs_f64() * 1000.0);
+        info!("{:.2}ms", now.elapsed().as_secs_f64() * 1000.0);
     }
 
     if !options.norender {
