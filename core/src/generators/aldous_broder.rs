@@ -23,17 +23,9 @@ impl Generator for AldousBroder {
         let mut unvisited = grid.size() - 1;
 
         while unvisited > 0 {
-            let neighbor_handle = {
-                let cell = grid.get(cell_handle.row, cell_handle.col).unwrap();
-                cell.get_random_neighbor()
-            };
-
-            let has_links = {
-                let neighbor = grid.get(neighbor_handle.row, neighbor_handle.col).unwrap();
-                neighbor.has_links()
-            };
-
-            if !has_links {
+            let neighbor_handle = cell_handle.get_cell(&grid).unwrap().get_random_neighbor();
+            let neighbor = neighbor_handle.get_cell(&grid).unwrap();
+            if !neighbor.has_links() {
                 grid.link_cells(cell_handle, neighbor_handle);
                 unvisited -= 1;
             }

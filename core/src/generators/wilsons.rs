@@ -1,5 +1,5 @@
 use crate::util::sample;
-use crate::Grid;
+use crate::{CellHandle, Grid};
 
 use super::Generator;
 
@@ -20,10 +20,7 @@ impl Generator for Wilsons {
     fn generate(&self, rows: usize, cols: usize) -> Grid {
         let mut grid = Grid::new(rows, cols);
 
-        let mut unvisited = Vec::new();
-        for cell in grid.iter() {
-            unvisited.push(cell.handle());
-        }
+        let mut unvisited = grid.handles_iter().collect::<Vec<CellHandle>>();
 
         // visit the first cell
         let first = *sample(&unvisited);
@@ -39,10 +36,7 @@ impl Generator for Wilsons {
             // building a path between them
             // erasing loops as we go
             while unvisited.contains(&cell_handle) {
-                cell_handle = {
-                    let cell = grid.get(cell_handle.row, cell_handle.col).unwrap();
-                    cell.get_random_neighbor()
-                };
+                cell_handle = cell_handle.get_cell(&grid).unwrap().get_random_neighbor();
 
                 let position = path.iter().position(|&c| c == cell_handle);
                 if let Some(position) = position {

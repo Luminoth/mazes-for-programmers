@@ -146,6 +146,11 @@ impl Grid {
         IterMut::new(self)
     }
 
+    /// Returns an iterator over the grid cells
+    pub fn handles_iter(&self) -> HandlesIter<'_> {
+        HandlesIter::new(self)
+    }
+
     /// Links two cells bidirectionally
     /// This creates a path between the cells
     pub(crate) fn link_cells(&mut self, a: CellHandle, b: CellHandle) {
@@ -426,6 +431,43 @@ impl<'a> IntoIterator for &'a Grid {
 
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+pub struct HandlesIter<'a> {
+    grid: &'a Grid,
+
+    row: usize,
+    col: usize,
+}
+
+impl<'a> HandlesIter<'a> {
+    fn new(grid: &'a Grid) -> Self {
+        Self {
+            grid,
+            row: 0,
+            col: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for HandlesIter<'a> {
+    type Item = CellHandle;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let ret = self.grid.get(self.row, self.col);
+
+        let mut next_row = self.row;
+        let mut next_col = self.col + 1;
+        if next_col >= self.grid.cols {
+            next_row += 1;
+            next_col = 0;
+        }
+
+        self.row = next_row;
+        self.col = next_col;
+
+        ret.map(|cell| cell.handle())
     }
 }
 

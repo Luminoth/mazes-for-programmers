@@ -30,7 +30,7 @@ impl Sidewinder {
 
         if should_close_out {
             let member_handle = *sample(run);
-            let member = grid.get(member_handle.row, member_handle.col).unwrap();
+            let member = member_handle.get_cell(grid).unwrap();
             if let Some(north) = member.north {
                 return Some((member_handle, north));
             }
@@ -61,10 +61,7 @@ impl Generator for Sidewinder {
             })
             .flatten()
             .collect::<Vec<(CellHandle, CellHandle)>>();
-
-        for link in links {
-            grid.link_cells(link.0, link.1);
-        }
+        grid.link_cells_multi(links);
 
         grid
     }

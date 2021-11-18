@@ -2,6 +2,7 @@ use std::collections::hash_set::Iter;
 use std::collections::HashSet;
 
 use crate::util::sample;
+use crate::Grid;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct CellHandle {
@@ -17,6 +18,10 @@ impl CellHandle {
     // not sure why but into() doesn't work even tho From is impl'd
     pub fn unpack(&self) -> (usize, usize) {
         (self.row, self.col)
+    }
+
+    pub fn get_cell<'a>(&self, grid: &'a Grid) -> Option<&'a Cell> {
+        grid.get(self.row, self.col)
     }
 }
 

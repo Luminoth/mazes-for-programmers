@@ -26,13 +26,9 @@ impl Generator for HuntAndKill {
 
         while cell_handle.is_some() {
             let unvisited_neighbors = {
-                let cell_handle = cell_handle.unwrap();
-                let cell = grid.get(cell_handle.row, cell_handle.col).unwrap();
-
-                let mut neighbors = cell.neighbors();
+                let mut neighbors = cell_handle.unwrap().get_cell(&grid).unwrap().neighbors();
                 neighbors.retain(|neighbor_handle| {
-                    let neighbor = grid.get(neighbor_handle.row, neighbor_handle.col).unwrap();
-                    !neighbor.has_links()
+                    !neighbor_handle.get_cell(&grid).unwrap().has_links()
                 });
                 neighbors
             };
@@ -49,13 +45,11 @@ impl Generator for HuntAndKill {
                 for cell in grid.iter() {
                     let mut visited_neighbors = cell.neighbors();
                     visited_neighbors.retain(|neighbor_handle| {
-                        let neighbor = grid.get(neighbor_handle.row, neighbor_handle.col).unwrap();
-                        neighbor.has_links()
+                        neighbor_handle.get_cell(&grid).unwrap().has_links()
                     });
 
                     if !cell.has_links() && !visited_neighbors.is_empty() {
                         cell_handle = Some(cell.handle());
-
                         neighbor_handle = Some(*sample(&visited_neighbors));
                     }
                 }

@@ -32,10 +32,7 @@ impl Generator for SidewinderParallel {
             })
             .flatten()
             .collect::<Vec<(CellHandle, CellHandle)>>();
-
-        for link in links {
-            grid.link_cells(link.0, link.1);
-        }
+        grid.link_cells_multi(links);
 
         grid
     }

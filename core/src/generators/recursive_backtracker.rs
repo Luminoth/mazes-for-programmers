@@ -28,12 +28,9 @@ impl Generator for RecursiveBacktracker {
         while !stack.is_empty() {
             let current = *stack.last().unwrap();
             let neighbors = {
-                let cell = grid.get(current.row, current.col).unwrap();
-
-                let mut neighbors = cell.neighbors();
+                let mut neighbors = current.get_cell(&grid).unwrap().neighbors();
                 neighbors.retain(|neighbor_handle| {
-                    let neighbor = grid.get(neighbor_handle.row, neighbor_handle.col).unwrap();
-                    !neighbor.has_links()
+                    !neighbor_handle.get_cell(&grid).unwrap().has_links()
                 });
                 neighbors
             };
