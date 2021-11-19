@@ -16,15 +16,13 @@ impl Generator for AldousBroder {
         "Aldous-Broder"
     }
 
-    fn generate(&self, rows: usize, cols: usize) -> Grid {
-        let mut grid = Grid::new(rows, cols);
-
+    fn run(&self, grid: &mut Grid) {
         let mut cell_handle = grid.get_random().handle();
         let mut unvisited = grid.size() - 1;
 
         while unvisited > 0 {
-            let neighbor_handle = cell_handle.get_cell(&grid).unwrap().get_random_neighbor();
-            let neighbor = neighbor_handle.get_cell(&grid).unwrap();
+            let neighbor_handle = cell_handle.get_cell(grid).unwrap().get_random_neighbor();
+            let neighbor = neighbor_handle.get_cell(grid).unwrap();
             if !neighbor.has_links() {
                 grid.link_cells(cell_handle, neighbor_handle);
                 unvisited -= 1;
@@ -32,7 +30,5 @@ impl Generator for AldousBroder {
 
             cell_handle = neighbor_handle;
         }
-
-        grid
     }
 }

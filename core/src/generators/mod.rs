@@ -25,7 +25,16 @@ pub trait Generator {
     fn name(&self) -> &str;
 
     /// Generates a new grid-based maze
-    fn generate(&self, rows: usize, cols: usize) -> Grid;
+    fn generate(&self, rows: usize, cols: usize) -> Grid {
+        let mut grid = Grid::new(rows, cols);
+
+        self.run(&mut grid);
+
+        grid
+    }
+
+    /// Runs the generator on the given grid
+    fn run(&self, grid: &mut Grid);
 }
 
 /// Generator that doesn't generate anything
@@ -37,7 +46,5 @@ impl Generator for NoneGenerator {
         "None"
     }
 
-    fn generate(&self, rows: usize, cols: usize) -> Grid {
-        Grid::new(rows, cols)
-    }
+    fn run(&self, _grid: &mut Grid) {}
 }

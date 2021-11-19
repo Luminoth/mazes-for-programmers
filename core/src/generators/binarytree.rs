@@ -41,9 +41,7 @@ impl Generator for BinaryTree {
         "Binary Tree"
     }
 
-    fn generate(&self, rows: usize, cols: usize) -> Grid {
-        let mut grid = Grid::new(rows, cols);
-
+    fn run(&self, grid: &mut Grid) {
         let links = grid
             .iter()
             .filter_map(|cell| {
@@ -54,7 +52,5 @@ impl Generator for BinaryTree {
             })
             .collect::<Vec<(CellHandle, CellHandle)>>();
         grid.link_cells_multi(links);
-
-        grid
     }
 }

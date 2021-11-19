@@ -19,19 +19,16 @@ impl Generator for RecursiveBacktracker {
         "Recursive Backtracker"
     }
 
-    fn generate(&self, rows: usize, cols: usize) -> Grid {
-        let mut grid = Grid::new(rows, cols);
-
+    fn run(&self, grid: &mut Grid) {
         let start = grid.get_random().handle();
 
         let mut stack = vec![start];
         while !stack.is_empty() {
             let current = *stack.last().unwrap();
             let neighbors = {
-                let mut neighbors = current.get_cell(&grid).unwrap().neighbors();
-                neighbors.retain(|neighbor_handle| {
-                    !neighbor_handle.get_cell(&grid).unwrap().has_links()
-                });
+                let mut neighbors = current.get_cell(grid).unwrap().neighbors();
+                neighbors
+                    .retain(|neighbor_handle| !neighbor_handle.get_cell(grid).unwrap().has_links());
                 neighbors
             };
 
@@ -45,7 +42,5 @@ impl Generator for RecursiveBacktracker {
                 stack.push(neighbor);
             }
         }
-
-        grid
     }
 }

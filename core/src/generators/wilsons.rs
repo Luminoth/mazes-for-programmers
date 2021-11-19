@@ -17,9 +17,7 @@ impl Generator for Wilsons {
         "Wilson's Algorithm"
     }
 
-    fn generate(&self, rows: usize, cols: usize) -> Grid {
-        let mut grid = Grid::new(rows, cols);
-
+    fn run(&self, grid: &mut Grid) {
         let mut unvisited = grid.handles_iter().collect::<Vec<CellHandle>>();
 
         // visit the first cell
@@ -36,7 +34,7 @@ impl Generator for Wilsons {
             // building a path between them
             // erasing loops as we go
             while unvisited.contains(&cell_handle) {
-                cell_handle = cell_handle.get_cell(&grid).unwrap().get_random_neighbor();
+                cell_handle = cell_handle.get_cell(grid).unwrap().get_random_neighbor();
 
                 let position = path.iter().position(|&c| c == cell_handle);
                 if let Some(position) = position {
@@ -55,7 +53,5 @@ impl Generator for Wilsons {
                 unvisited.swap_remove(unvisited_index);
             }
         }
-
-        grid
     }
 }

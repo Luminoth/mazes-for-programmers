@@ -19,17 +19,14 @@ impl Generator for HuntAndKill {
         "Hunt-and-Kill"
     }
 
-    fn generate(&self, rows: usize, cols: usize) -> Grid {
-        let mut grid = Grid::new(rows, cols);
-
+    fn run(&self, grid: &mut Grid) {
         let mut cell_handle = Some(grid.get_random().handle());
 
         while cell_handle.is_some() {
             let unvisited_neighbors = {
-                let mut neighbors = cell_handle.unwrap().get_cell(&grid).unwrap().neighbors();
-                neighbors.retain(|neighbor_handle| {
-                    !neighbor_handle.get_cell(&grid).unwrap().has_links()
-                });
+                let mut neighbors = cell_handle.unwrap().get_cell(grid).unwrap().neighbors();
+                neighbors
+                    .retain(|neighbor_handle| !neighbor_handle.get_cell(grid).unwrap().has_links());
                 neighbors
             };
 
@@ -45,7 +42,7 @@ impl Generator for HuntAndKill {
                 for cell in grid.iter() {
                     let mut visited_neighbors = cell.neighbors();
                     visited_neighbors.retain(|neighbor_handle| {
-                        neighbor_handle.get_cell(&grid).unwrap().has_links()
+                        neighbor_handle.get_cell(grid).unwrap().has_links()
                     });
 
                     if !cell.has_links() && !visited_neighbors.is_empty() {
@@ -60,7 +57,5 @@ impl Generator for HuntAndKill {
                 }
             }
         }
-
-        grid
     }
 }

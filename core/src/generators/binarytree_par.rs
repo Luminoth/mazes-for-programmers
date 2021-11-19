@@ -18,9 +18,7 @@ impl Generator for BinaryTreeParallel {
         "Binary Tree (Parallel)"
     }
 
-    fn generate(&self, rows: usize, cols: usize) -> Grid {
-        let mut grid = Grid::new(rows, cols);
-
+    fn run(&self, grid: &mut Grid) {
         let links = grid
             .iter()
             .par_bridge()
@@ -32,7 +30,5 @@ impl Generator for BinaryTreeParallel {
             })
             .collect::<Vec<(CellHandle, CellHandle)>>();
         grid.link_cells_multi(links);
-
-        grid
     }
 }

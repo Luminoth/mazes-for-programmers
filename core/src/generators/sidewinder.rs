@@ -48,21 +48,17 @@ impl Generator for Sidewinder {
         "Sidewinder"
     }
 
-    fn generate(&self, rows: usize, cols: usize) -> Grid {
-        let mut grid = Grid::new(rows, cols);
-
+    fn run(&self, grid: &mut Grid) {
         let links = grid
             .rows_iter()
             .map(|row| {
                 let mut run = Vec::new();
                 row.iter()
-                    .filter_map(|cell| Self::link(&grid, cell, &mut run))
+                    .filter_map(|cell| Self::link(grid, cell, &mut run))
                     .collect::<Vec<(CellHandle, CellHandle)>>()
             })
             .flatten()
             .collect::<Vec<(CellHandle, CellHandle)>>();
         grid.link_cells_multi(links);
-
-        grid
     }
 }
