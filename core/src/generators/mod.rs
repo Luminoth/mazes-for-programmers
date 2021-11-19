@@ -21,6 +21,7 @@ pub use wilsons::*;
 /// All maze generators implement this trait
 // TODO: use an enum instead of a trait
 pub trait Generator {
+    /// Returns the printable generator name
     fn name(&self) -> &str;
 
     /// Generates a new grid-based maze

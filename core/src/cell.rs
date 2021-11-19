@@ -48,6 +48,8 @@ pub struct Cell {
 
     // linked cells have no wall between them
     links: HashSet<CellHandle>,
+
+    pub orphaned: bool,
 }
 
 impl Cell {
@@ -60,11 +62,16 @@ impl Cell {
             east: None,
             west: None,
             links: HashSet::default(),
+            orphaned: false,
         }
     }
 
     pub fn handle(&self) -> CellHandle {
         CellHandle::new(self.row, self.col)
+    }
+
+    pub fn has_neighbors(&self) -> bool {
+        self.north.is_some() || self.south.is_some() || self.east.is_some() || self.west.is_some()
     }
 
     // TODO: this could be better if we didn't build a vec each time
@@ -98,25 +105,37 @@ impl Cell {
     pub fn orphan(&self, grid: &mut Grid) {
         if let Some(north) = self.north {
             if let Some(cell) = grid.get_mut(north.row, north.col) {
-                cell.south = None
+                cell.south = None;
+                if !cell.has_neighbors() {
+                    cell.orphaned = true;
+                }
             }
         }
 
         if let Some(south) = self.south {
             if let Some(cell) = grid.get_mut(south.row, south.col) {
-                cell.north = None
+                cell.north = None;
+                if !cell.has_neighbors() {
+                    cell.orphaned = true;
+                }
             }
         }
 
         if let Some(east) = self.east {
             if let Some(cell) = grid.get_mut(east.row, east.col) {
-                cell.west = None
+                cell.west = None;
+                if !cell.has_neighbors() {
+                    cell.orphaned = true;
+                }
             }
         }
 
         if let Some(west) = self.west {
             if let Some(cell) = grid.get_mut(west.row, west.col) {
-                cell.east = None
+                cell.east = None;
+                if !cell.has_neighbors() {
+                    cell.orphaned = true;
+                }
             }
         }
     }

@@ -58,7 +58,7 @@ pub fn distances(grid: &Grid, root: CellHandle) -> Distances {
         let mut new_frontier = Vec::new();
 
         for cell_handle in frontier {
-            let cell = cell_handle.get_cell(&grid).unwrap();
+            let cell = cell_handle.get_cell(grid).unwrap();
 
             // visit all of the cells this cell is linked (has a path) to
             for linked in cell.links() {
