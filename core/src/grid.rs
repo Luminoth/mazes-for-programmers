@@ -126,6 +126,15 @@ impl Grid {
         self.get_mut(row, col).unwrap()
     }
 
+    /// Orphans a cell
+    pub fn orphan(&mut self, row: usize, col: usize) {
+        // TODO: having to clone here kinda sucks
+        // is there a better way we could handle this?
+        if let Some(cell) = self.get(row, col) {
+            cell.clone().orphan(self);
+        }
+    }
+
     /// Returns an iterator over the grid rows
     pub fn rows_iter(&self) -> std::slice::Iter<'_, Vec<Cell>> {
         self.grid.iter()

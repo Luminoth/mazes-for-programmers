@@ -95,6 +95,32 @@ impl Cell {
         *sample(&neighbors)
     }
 
+    pub fn orphan(&self, grid: &mut Grid) {
+        if let Some(north) = self.north {
+            if let Some(cell) = grid.get_mut(north.row, north.col) {
+                cell.south = None
+            }
+        }
+
+        if let Some(south) = self.south {
+            if let Some(cell) = grid.get_mut(south.row, south.col) {
+                cell.north = None
+            }
+        }
+
+        if let Some(east) = self.east {
+            if let Some(cell) = grid.get_mut(east.row, east.col) {
+                cell.west = None
+            }
+        }
+
+        if let Some(west) = self.west {
+            if let Some(cell) = grid.get_mut(west.row, west.col) {
+                cell.east = None
+            }
+        }
+    }
+
     pub fn is_linked(&self, cell: CellHandle) -> bool {
         self.links.contains(&cell)
     }
