@@ -19,6 +19,10 @@ impl Generator for SidewinderParallel {
     }
 
     fn run(&self, grid: &mut Grid) {
+        if grid.has_orphans() {
+            return;
+        }
+
         let links = grid
             .rows_iter()
             .par_bridge()

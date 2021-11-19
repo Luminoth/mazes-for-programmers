@@ -71,6 +71,10 @@ impl Cell {
         self.north.is_some() || self.south.is_some() || self.east.is_some() || self.west.is_some()
     }
 
+    pub fn is_orphaned(&self) -> bool {
+        return !self.has_neighbors();
+    }
+
     // TODO: this could be better if we didn't build a vec each time
     pub fn neighbors(&self) -> Vec<CellHandle> {
         let mut neighbors = Vec::new();
@@ -99,7 +103,14 @@ impl Cell {
         *sample(&neighbors)
     }
 
-    pub fn orphan(&self, grid: &mut Grid) {
+    pub fn orphan(&mut self) {
+        self.north = None;
+        self.south = None;
+        self.east = None;
+        self.west = None;
+    }
+
+    pub fn orphaned(&self, grid: &mut Grid) {
         if let Some(north) = self.north {
             if let Some(cell) = grid.get_mut(north.row, north.col) {
                 cell.south = None;

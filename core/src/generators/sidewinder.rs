@@ -49,6 +49,10 @@ impl Generator for Sidewinder {
     }
 
     fn run(&self, grid: &mut Grid) {
+        if grid.has_orphans() {
+            return;
+        }
+
         let links = grid
             .rows_iter()
             .map(|row| {

@@ -133,10 +133,16 @@ impl Grid {
 
     /// Orphans a cell
     pub fn orphan(&mut self, row: usize, col: usize) {
+        // remove this cell from its neighbors first
         // TODO: having to clone here kinda sucks
         // is there a better way we could handle this?
         if let Some(cell) = self.get(row, col) {
-            cell.clone().orphan(self);
+            cell.clone().orphaned(self);
+        }
+
+        // then remove neighbors from this cell
+        if let Some(cell) = self.get_mut(row, col) {
+            cell.orphan();
         }
     }
 

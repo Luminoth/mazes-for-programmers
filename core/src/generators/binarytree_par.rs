@@ -19,6 +19,10 @@ impl Generator for BinaryTreeParallel {
     }
 
     fn run(&self, grid: &mut Grid) {
+        if grid.has_orphans() {
+            return;
+        }
+
         let links = grid
             .iter()
             .par_bridge()

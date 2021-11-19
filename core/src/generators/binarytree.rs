@@ -42,6 +42,10 @@ impl Generator for BinaryTree {
     }
 
     fn run(&self, grid: &mut Grid) {
+        if grid.has_orphans() {
+            return;
+        }
+
         let links = grid
             .iter()
             .filter_map(|cell| {
