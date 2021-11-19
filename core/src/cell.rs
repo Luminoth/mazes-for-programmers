@@ -48,8 +48,6 @@ pub struct Cell {
 
     // linked cells have no wall between them
     links: HashSet<CellHandle>,
-
-    pub orphaned: bool,
 }
 
 impl Cell {
@@ -62,7 +60,6 @@ impl Cell {
             east: None,
             west: None,
             links: HashSet::default(),
-            orphaned: false,
         }
     }
 
@@ -106,36 +103,24 @@ impl Cell {
         if let Some(north) = self.north {
             if let Some(cell) = grid.get_mut(north.row, north.col) {
                 cell.south = None;
-                if !cell.has_neighbors() {
-                    cell.orphaned = true;
-                }
             }
         }
 
         if let Some(south) = self.south {
             if let Some(cell) = grid.get_mut(south.row, south.col) {
                 cell.north = None;
-                if !cell.has_neighbors() {
-                    cell.orphaned = true;
-                }
             }
         }
 
         if let Some(east) = self.east {
             if let Some(cell) = grid.get_mut(east.row, east.col) {
                 cell.west = None;
-                if !cell.has_neighbors() {
-                    cell.orphaned = true;
-                }
             }
         }
 
         if let Some(west) = self.west {
             if let Some(cell) = grid.get_mut(west.row, west.col) {
                 cell.east = None;
-                if !cell.has_neighbors() {
-                    cell.orphaned = true;
-                }
             }
         }
     }

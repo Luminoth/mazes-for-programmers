@@ -93,7 +93,7 @@ impl Grid {
 
     /// Returns true if the grid contains any orphaned cells
     pub fn has_orphans(&self) -> bool {
-        self.iter().any(|x| x.orphaned)
+        self.iter().any(|x| !x.has_neighbors())
     }
 
     /// Set of dead end cells (cells with only one link) in the grid
@@ -137,10 +137,6 @@ impl Grid {
         // is there a better way we could handle this?
         if let Some(cell) = self.get(row, col) {
             cell.clone().orphan(self);
-        }
-
-        if let Some(mut cell) = self.get_mut(row, col) {
-            cell.orphaned = true;
         }
     }
 
