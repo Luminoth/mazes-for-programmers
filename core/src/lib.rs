@@ -2,6 +2,7 @@ mod cell;
 mod distances;
 pub mod generators;
 pub mod grid;
+pub mod mask;
 pub mod solvers;
 mod util;
 
@@ -11,6 +12,7 @@ use std::path::Path;
 use cell::*;
 use distances::*;
 pub use grid::*;
+pub use mask::*;
 
 pub trait Renderable {
     /// Renders the maze to the CLI
