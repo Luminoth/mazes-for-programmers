@@ -39,6 +39,18 @@ impl GeneratorOption {
         matches!(self, GeneratorOption::Analysis(_))
     }
 
+    pub fn use_mask(&self) -> bool {
+        match self {
+            GeneratorOption::Analysis(_) => false,
+            GeneratorOption::BinaryTree(_) => false,
+            GeneratorOption::Sidewinder(_) => false,
+            GeneratorOption::AldousBroder(generator) => generator.masked,
+            GeneratorOption::Wilsons(generator) => generator.masked,
+            GeneratorOption::HuntAndKill(generator) => generator.masked,
+            GeneratorOption::RecursiveBacktracker(generator) => generator.masked,
+        }
+    }
+
     pub fn generator(&self) -> Box<dyn Generator> {
         match self {
             GeneratorOption::Analysis(_) => Box::new(NoneGenerator::default()),
@@ -132,6 +144,10 @@ pub struct AldousBroderGenerator {
     /// solver to run
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
+
+    /// mask the grid (hardcoded)
+    #[argh(switch)]
+    pub masked: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -141,6 +157,10 @@ pub struct WilsonsGenerator {
     /// solver to run
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
+
+    /// mask the grid (hardcoded)
+    #[argh(switch)]
+    pub masked: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -150,6 +170,10 @@ pub struct HuntAndKillGenerator {
     /// solver to run
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
+
+    /// mask the grid (hardcoded)
+    #[argh(switch)]
+    pub masked: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -159,6 +183,10 @@ pub struct RecursiveBacktrackerGenerator {
     /// solver to run
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
+
+    /// mask the grid (hardcoded)
+    #[argh(switch)]
+    pub masked: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug, Display, Clone)]

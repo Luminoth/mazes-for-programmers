@@ -8,7 +8,7 @@ use rand::Rng;
 
 use crate::solvers::Solver;
 use crate::util::{horizontal_line, quad, vertical_line, Color};
-use crate::{Cell, CellHandle, Renderable};
+use crate::{Cell, CellHandle, Mask, Renderable};
 
 /// Grid-based maze data structure
 #[derive(Debug, Clone)]
@@ -16,7 +16,12 @@ pub struct Grid {
     rows: usize,
     cols: usize,
 
-    grid: Vec<Vec<Cell>>,
+    mask: Option<Mask>,
+
+    // vector of vector of cells so we can easily iterate over rows
+    // TODO: this would be better, however, if it was a single vector
+    // and a custom "row iterator" was used instead
+    grid: Vec<Vec<Option<Cell>>>,
 }
 
 impl Grid {
@@ -26,6 +31,21 @@ impl Grid {
         let mut grid = Self {
             rows,
             cols,
+            mask: None,
+            grid: Vec::new(),
+        };
+
+        grid.init_grid();
+        grid.init_cells();
+
+        grid
+    }
+
+    pub fn from_mask(mask: Mask) -> Self {
+        let mut grid = Self {
+            rows: mask.rows,
+            cols: mask.cols,
+            mask: Some(mask),
             grid: Vec::new(),
         };
 
@@ -40,7 +60,16 @@ impl Grid {
         for row in 0..self.rows {
             let mut cells = Vec::with_capacity(self.cols);
             for col in 0..self.cols {
-                cells.push(Cell::new(row, col));
+                let cell = if let Some(mask) = &self.mask {
+                    if mask.get(row, col) {
+                        Some(Cell::new(row, col))
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(Cell::new(row, col))
+                };
+                cells.push(cell);
             }
             self.grid.push(cells);
         }
@@ -88,7 +117,11 @@ impl Grid {
 
     /// The number of cells in the grid
     pub fn size(&self) -> usize {
-        self.rows * self.cols
+        if let Some(mask) = &self.mask {
+            mask.size()
+        } else {
+            self.rows * self.cols
+        }
     }
 
     /// Returns true if the grid contains any orphaned cells
@@ -105,30 +138,41 @@ impl Grid {
 
     /// Gets a reference to the given cell if it exists
     pub fn get(&self, row: usize, col: usize) -> Option<&Cell> {
-        self.grid.get(row)?.get(col)
+        let cell = self.grid.get(row)?.get(col)?;
+        if let Some(cell) = cell {
+            return Some(cell);
+        }
+        None
     }
 
     /// Gets a mutable reference to the given cell if it exists
     pub fn get_mut(&mut self, row: usize, col: usize) -> Option<&mut Cell> {
-        self.grid.get_mut(row)?.get_mut(col)
+        let cell = self.grid.get_mut(row)?.get_mut(col)?;
+        if let Some(cell) = cell {
+            return Some(cell);
+        }
+        None
+    }
+
+    fn get_random_cell(&self) -> CellHandle {
+        if let Some(mask) = &self.mask {
+            mask.random().into()
+        } else {
+            let mut rng = rand::thread_rng();
+            (rng.gen_range(0..self.rows), rng.gen_range(0..self.cols)).into()
+        }
     }
 
     /// Gets a reference to a random cell
     pub fn get_random(&self) -> &Cell {
-        let mut rng = rand::thread_rng();
-
-        let row = rng.gen_range(0..self.rows);
-        let col = rng.gen_range(0..self.cols);
-        self.get(row, col).unwrap()
+        let cell = self.get_random_cell();
+        self.get(cell.row, cell.col).unwrap()
     }
 
     /// Gets a mutable reference to a random cell
     pub fn get_random_mut(&mut self) -> &mut Cell {
-        let mut rng = rand::thread_rng();
-
-        let row = rng.gen_range(0..self.rows);
-        let col = rng.gen_range(0..self.cols);
-        self.get_mut(row, col).unwrap()
+        let cell = self.get_random_cell();
+        self.get_mut(cell.row, cell.col).unwrap()
     }
 
     /// Orphans a cell
@@ -147,12 +191,12 @@ impl Grid {
     }
 
     /// Returns an iterator over the grid rows
-    pub fn rows_iter(&self) -> std::slice::Iter<'_, Vec<Cell>> {
+    pub fn rows_iter(&self) -> std::slice::Iter<'_, Vec<Option<Cell>>> {
         self.grid.iter()
     }
 
     /// Returns a mutable iterator over the grid rows
-    pub fn rows_iter_mut(&mut self) -> std::slice::IterMut<'_, Vec<Cell>> {
+    pub fn rows_iter_mut(&mut self) -> std::slice::IterMut<'_, Vec<Option<Cell>>> {
         self.grid.iter_mut()
     }
 
@@ -232,36 +276,40 @@ impl Grid {
             let mut bottom = String::from("+");
 
             for cell in row {
-                let body = format!(
-                    " {} ",
-                    solver
-                        .map(|solver| solver.cell_contents(cell.row, cell.col))
-                        .unwrap_or_else(|| empty.clone())
-                );
+                if let Some(cell) = cell {
+                    let body = format!(
+                        " {} ",
+                        solver
+                            .map(|solver| solver.cell_contents(cell.row, cell.col))
+                            .unwrap_or_else(|| empty.clone())
+                    );
 
-                top.push_str(&body);
-                let east_boundary = if let Some(east) = cell.east {
-                    if cell.is_linked(east) {
-                        " "
+                    top.push_str(&body);
+                    let east_boundary = if let Some(east) = cell.east {
+                        if cell.is_linked(east) {
+                            " "
+                        } else {
+                            "|"
+                        }
                     } else {
                         "|"
-                    }
-                } else {
-                    "|"
-                };
-                top.push_str(east_boundary);
+                    };
+                    top.push_str(east_boundary);
 
-                let south_boundary = if let Some(south) = cell.south {
-                    if cell.is_linked(south) {
-                        format!(" {} ", str::repeat(" ", digits))
+                    let south_boundary = if let Some(south) = cell.south {
+                        if cell.is_linked(south) {
+                            format!(" {} ", str::repeat(" ", digits))
+                        } else {
+                            format!("-{}-", str::repeat("-", digits))
+                        }
                     } else {
                         format!("-{}-", str::repeat("-", digits))
-                    }
+                    };
+                    bottom.push_str(&south_boundary);
+                    bottom.push('+');
                 } else {
-                    format!("-{}-", str::repeat("-", digits))
-                };
-                bottom.push_str(&south_boundary);
-                bottom.push('+');
+                    // TODO: render the empty cell
+                }
             }
 
             output.push_str(&top);
@@ -509,7 +557,7 @@ impl<'a> IterMut<'a> {
 }
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = &'a mut Cell;
+    type Item = &'a mut Option<Cell>;
 
     fn next(&mut self) -> Option<Self::Item> {
         //let ret = self.grid.get_mut(self.row, self.col);
@@ -540,7 +588,7 @@ impl<'a> Iterator for IterMut<'a> {
 }
 
 impl<'a> IntoIterator for &'a mut Grid {
-    type Item = &'a mut Cell;
+    type Item = &'a mut Option<Cell>;
     type IntoIter = IterMut<'a>;
 
     fn into_iter(self) -> Self::IntoIter {

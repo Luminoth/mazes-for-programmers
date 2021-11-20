@@ -25,11 +25,22 @@ impl Generator for RecursiveBacktracker {
         let mut stack = vec![start];
         while !stack.is_empty() {
             let current = *stack.last().unwrap();
+
             let neighbors = {
-                let mut neighbors = current.get_cell(grid).unwrap().neighbors();
-                neighbors
-                    .retain(|neighbor_handle| !neighbor_handle.get_cell(grid).unwrap().has_links());
-                neighbors
+                let cell = current.get_cell(grid);
+                if let Some(cell) = cell {
+                    let mut neighbors = cell.neighbors();
+                    neighbors.retain(|neighbor_handle| {
+                        let neighbor = neighbor_handle.get_cell(grid);
+                        if let Some(neighbor) = neighbor {
+                            return !neighbor.has_links();
+                        }
+                        false
+                    });
+                    neighbors
+                } else {
+                    Vec::new()
+                }
             };
 
             // if there are no unvisited neighbors

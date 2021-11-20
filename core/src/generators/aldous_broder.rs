@@ -21,14 +21,19 @@ impl Generator for AldousBroder {
         let mut unvisited = grid.size() - 1;
 
         while unvisited > 0 {
-            let neighbor_handle = cell_handle.get_cell(grid).unwrap().get_random_neighbor();
-            let neighbor = neighbor_handle.get_cell(grid).unwrap();
-            if !neighbor.has_links() {
-                grid.link_cells(cell_handle, neighbor_handle);
-                unvisited -= 1;
-            }
+            let cell = cell_handle.get_cell(grid);
+            if let Some(cell) = cell {
+                let neighbor_handle = cell.get_random_neighbor();
+                let neighbor = neighbor_handle.get_cell(grid);
+                if let Some(neighbor) = neighbor {
+                    if !neighbor.has_links() {
+                        grid.link_cells(cell_handle, neighbor_handle);
+                        unvisited -= 1;
+                    }
 
-            cell_handle = neighbor_handle;
+                    cell_handle = neighbor_handle;
+                }
+            }
         }
     }
 }

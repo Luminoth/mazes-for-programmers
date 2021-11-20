@@ -8,6 +8,7 @@ use tracing::{debug, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 use mazecore::solvers::Solver;
+use mazecore::{Grid, Mask};
 
 use options::Options;
 
@@ -43,14 +44,29 @@ fn main() -> anyhow::Result<()> {
         return Ok(());
     }
 
-    info!("Generating {}x{} maze ...", options.height, options.width);
-
     let generator = options.generator.generator();
     let grid = {
+        info!(
+            "Generating {}x{} maze (masked={}) ...",
+            options.height,
+            options.width,
+            options.generator.use_mask()
+        );
+
+        let mut grid = if options.generator.use_mask() {
+            let mut mask = Mask::new(options.height, options.width);
+            mask.set(0, 0, false);
+            mask.set(2, 2, false);
+            mask.set(4, 4, false);
+            Grid::from_mask(mask)
+        } else {
+            Grid::new(options.height, options.width)
+        };
+
         info!("Running maze generator {} ...", generator.name());
 
         let now = Instant::now();
-        let grid = generator.generate(options.height, options.width);
+        generator.run(&mut grid);
         info!("{:.2}ms", now.elapsed().as_secs_f64() * 1000.0);
 
         grid
