@@ -72,10 +72,10 @@ impl Cell {
     }
 
     pub fn is_orphaned(&self) -> bool {
-        return !self.has_neighbors();
+        !self.has_neighbors()
     }
 
-    // TODO: this could be better if we didn't build a vec each time
+    // TODO: this could be better if we didn't allocate a vec each time
     pub fn neighbors(&self) -> Vec<CellHandle> {
         let mut neighbors = Vec::new();
 
@@ -98,11 +98,18 @@ impl Cell {
         neighbors
     }
 
-    pub fn get_random_neighbor(&self) -> CellHandle {
-        let neighbors = self.neighbors();
-        *sample(&neighbors)
+    pub fn get_random_neighbor(&self) -> Option<CellHandle> {
+        if self.is_orphaned() {
+            None
+        } else {
+            let neighbors = self.neighbors();
+            Some(*sample(&neighbors))
+        }
     }
 
+    // sets this cell as orphaned
+    // orphaned() must be called to
+    // tell this cell's neighbors it was orphaned
     pub fn orphan(&mut self) {
         self.north = None;
         self.south = None;
@@ -110,6 +117,9 @@ impl Cell {
         self.west = None;
     }
 
+    // removes this cell from its neighbors,
+    // effectively orphaning it
+    // orphan() must be called to tell this cell it was orphaned
     pub fn orphaned(&self, grid: &mut Grid) {
         if let Some(north) = self.north {
             if let Some(cell) = grid.get_mut(north.row, north.col) {

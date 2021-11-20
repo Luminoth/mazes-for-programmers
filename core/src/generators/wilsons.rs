@@ -36,7 +36,7 @@ impl Generator for Wilsons {
             while unvisited.contains(&cell_handle) {
                 let cell = cell_handle.get_cell(grid);
                 if let Some(cell) = cell {
-                    cell_handle = cell.get_random_neighbor();
+                    cell_handle = cell.get_random_neighbor().unwrap();
 
                     let position = path.iter().position(|&c| c == cell_handle);
                     if let Some(position) = position {

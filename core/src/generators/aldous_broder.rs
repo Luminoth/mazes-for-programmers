@@ -23,7 +23,7 @@ impl Generator for AldousBroder {
         while unvisited > 0 {
             let cell = cell_handle.get_cell(grid);
             if let Some(cell) = cell {
-                let neighbor_handle = cell.get_random_neighbor();
+                let neighbor_handle = cell.get_random_neighbor().unwrap();
                 let neighbor = neighbor_handle.get_cell(grid);
                 if let Some(neighbor) = neighbor {
                     if !neighbor.has_links() {
