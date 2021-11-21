@@ -55,7 +55,7 @@ fn main() -> anyhow::Result<()> {
 
         let mut grid = if options.generator.use_mask() {
             let mut mask = Mask::new(options.height, options.width);
-            mask.set(0, 0, false);
+            mask.set(1, 1, false);
             mask.set(2, 2, false);
             mask.set(4, 4, false);
             Grid::from_mask(mask)

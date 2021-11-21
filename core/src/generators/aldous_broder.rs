@@ -18,22 +18,18 @@ impl Generator for AldousBroder {
 
     fn run(&self, grid: &mut Grid) {
         let mut cell_handle = grid.get_random().handle();
-        let mut unvisited = grid.size() - 1;
 
+        let mut unvisited = grid.enabled_count() - 1;
         while unvisited > 0 {
-            let cell = cell_handle.get_cell(grid);
-            if let Some(cell) = cell {
-                let neighbor_handle = cell.get_random_neighbor().unwrap();
-                let neighbor = neighbor_handle.get_cell(grid);
-                if let Some(neighbor) = neighbor {
-                    if !neighbor.has_links() {
-                        grid.link_cells(cell_handle, neighbor_handle);
-                        unvisited -= 1;
-                    }
-
-                    cell_handle = neighbor_handle;
-                }
+            let cell = cell_handle.get_cell(grid).unwrap();
+            let neighbor_handle = cell.get_random_neighbor();
+            let neighbor = neighbor_handle.get_cell(grid).unwrap();
+            if !neighbor.has_links() {
+                grid.link_cells(cell_handle, neighbor_handle);
+                unvisited -= 1;
             }
+
+            cell_handle = neighbor_handle;
         }
     }
 }

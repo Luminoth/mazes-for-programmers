@@ -51,6 +51,8 @@ impl Distances {
 
 /// Computes the distance from the root cell to every other cell
 pub fn distances(grid: &Grid, root: CellHandle) -> Distances {
+    assert!(grid.get(root.row, root.col).is_some());
+
     let mut distances = Distances::new(root);
     let mut frontier = vec![root];
 
@@ -58,19 +60,17 @@ pub fn distances(grid: &Grid, root: CellHandle) -> Distances {
         let mut new_frontier = Vec::new();
 
         for cell_handle in frontier {
-            let cell = cell_handle.get_cell(grid);
-            if let Some(cell) = cell {
-                // visit all of the cells this cell is linked (has a path) to
-                for linked in cell.links() {
-                    // don't revisit cells
-                    if distances.contains(linked) {
-                        continue;
-                    }
+            let cell = cell_handle.get_cell(grid).unwrap();
 
-                    distances
-                        .set_distance(*linked, distances.get_distance(&cell_handle).unwrap() + 1);
-                    new_frontier.push(*linked);
+            // visit all of the cells this cell is linked (has a path) to
+            for linked in cell.links() {
+                // don't revisit cells
+                if distances.contains(linked) {
+                    continue;
                 }
+
+                distances.set_distance(*linked, distances.get_distance(&cell_handle).unwrap() + 1);
+                new_frontier.push(*linked);
             }
         }
 

@@ -32,7 +32,7 @@ impl Grid {
             rows,
             cols,
             mask: None,
-            grid: Vec::new(),
+            grid: Vec::with_capacity(rows),
         };
 
         grid.init_grid();
@@ -42,11 +42,13 @@ impl Grid {
     }
 
     pub fn from_mask(mask: Mask) -> Self {
+        let rows = mask.rows;
+
         let mut grid = Self {
-            rows: mask.rows,
+            rows: rows,
             cols: mask.cols,
             mask: Some(mask),
-            grid: Vec::new(),
+            grid: Vec::with_capacity(rows),
         };
 
         grid.init_grid();
@@ -56,7 +58,6 @@ impl Grid {
     }
 
     fn init_grid(&mut self) {
-        self.grid = Vec::with_capacity(self.rows);
         for row in 0..self.rows {
             let mut cells = Vec::with_capacity(self.cols);
             for col in 0..self.cols {
@@ -117,8 +118,13 @@ impl Grid {
 
     /// The number of cells in the grid
     pub fn size(&self) -> usize {
+        self.rows * self.cols
+    }
+
+    /// The number of enabled cells in the grid
+    pub fn enabled_count(&self) -> usize {
         if let Some(mask) = &self.mask {
-            mask.size()
+            mask.count()
         } else {
             self.rows * self.cols
         }
@@ -154,6 +160,7 @@ impl Grid {
         None
     }
 
+    /// Returns a random enabled cell
     fn get_random_cell(&self) -> CellHandle {
         if let Some(mask) = &self.mask {
             mask.random().into()
@@ -163,13 +170,13 @@ impl Grid {
         }
     }
 
-    /// Gets a reference to a random cell
+    /// Gets a reference to a random enabled cell
     pub fn get_random(&self) -> &Cell {
         let cell = self.get_random_cell();
         self.get(cell.row, cell.col).unwrap()
     }
 
-    /// Gets a mutable reference to a random cell
+    /// Gets a mutable reference to a random enabled cell
     pub fn get_random_mut(&mut self) -> &mut Cell {
         let cell = self.get_random_cell();
         self.get_mut(cell.row, cell.col).unwrap()
@@ -219,10 +226,12 @@ impl Grid {
     /// This creates a path between the cells
     pub(crate) fn link_cells(&mut self, a: CellHandle, b: CellHandle) {
         if let Some(a) = self.get_mut(a.row, a.col) {
+            assert!(!a.is_orphaned());
             a.link(b);
         }
 
         if let Some(b) = self.get_mut(b.row, b.col) {
+            assert!(!b.is_orphaned());
             b.link(a);
         }
     }
@@ -477,17 +486,30 @@ impl<'a> Iterator for Iter<'a> {
     type Item = &'a Cell;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = self.grid.get(self.row, self.col);
+        let ret = loop {
+            let index = self.row * self.col;
+            if index >= self.grid.size() {
+                break None;
+            }
 
-        let mut next_row = self.row;
-        let mut next_col = self.col + 1;
-        if next_col >= self.grid.cols {
-            next_row += 1;
-            next_col = 0;
-        }
+            let ret = self.grid.get(self.row, self.col);
 
-        self.row = next_row;
-        self.col = next_col;
+            let mut next_row = self.row;
+            let mut next_col = self.col + 1;
+            if next_col >= self.grid.cols {
+                next_row += 1;
+                next_col = 0;
+            }
+
+            self.row = next_row;
+            self.col = next_col;
+
+            if ret.is_none() {
+                continue;
+            }
+
+            break ret;
+        };
 
         ret
     }
@@ -523,19 +545,32 @@ impl<'a> Iterator for HandlesIter<'a> {
     type Item = CellHandle;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = self.grid.get(self.row, self.col);
+        let ret = loop {
+            let index = self.row * self.col;
+            if index >= self.grid.size() {
+                break None;
+            }
 
-        let mut next_row = self.row;
-        let mut next_col = self.col + 1;
-        if next_col >= self.grid.cols {
-            next_row += 1;
-            next_col = 0;
-        }
+            let ret = self.grid.get(self.row, self.col);
 
-        self.row = next_row;
-        self.col = next_col;
+            let mut next_row = self.row;
+            let mut next_col = self.col + 1;
+            if next_col >= self.grid.cols {
+                next_row += 1;
+                next_col = 0;
+            }
 
-        ret.map(|cell| cell.handle())
+            self.row = next_row;
+            self.col = next_col;
+
+            if ret.is_none() {
+                continue;
+            }
+
+            break ret.map(|cell| cell.handle());
+        };
+
+        ret
     }
 }
 
@@ -557,38 +592,51 @@ impl<'a> IterMut<'a> {
 }
 
 impl<'a> Iterator for IterMut<'a> {
-    type Item = &'a mut Option<Cell>;
+    type Item = &'a mut Cell;
 
     fn next(&mut self) -> Option<Self::Item> {
-        //let ret = self.grid.get_mut(self.row, self.col);
-        // TODO: can we rework anything to remove this unsafe?
-        let ret = unsafe {
-            if self.row >= self.grid.rows || self.col >= self.grid.cols {
-                return None;
+        let ret = loop {
+            let index = self.row * self.col;
+            if index >= self.grid.size() {
+                break None;
             }
 
-            let cols = self.grid.grid.get_mut(self.row).unwrap();
-            let ptr = cols.as_mut_ptr();
+            //let ret = self.grid.get_mut(self.row, self.col);
+            // TODO: can we rework anything to remove this unsafe?
+            let ret = unsafe {
+                if self.row >= self.grid.rows || self.col >= self.grid.cols {
+                    return None;
+                }
 
-            Some(&mut *ptr.add(self.col))
+                let cols = self.grid.grid.get_mut(self.row).unwrap();
+                let ptr = cols.as_mut_ptr();
+
+                (&mut *ptr.add(self.col)).as_mut()
+            };
+
+            let mut next_row = self.row;
+            let mut next_col = self.col + 1;
+            if next_col >= self.grid.cols {
+                next_row += 1;
+                next_col = 0;
+            }
+
+            self.row = next_row;
+            self.col = next_col;
+
+            if ret.is_none() {
+                continue;
+            }
+
+            break ret;
         };
-
-        let mut next_row = self.row;
-        let mut next_col = self.col + 1;
-        if next_col >= self.grid.cols {
-            next_row += 1;
-            next_col = 0;
-        }
-
-        self.row = next_row;
-        self.col = next_col;
 
         ret
     }
 }
 
 impl<'a> IntoIterator for &'a mut Grid {
-    type Item = &'a mut Option<Cell>;
+    type Item = &'a mut Cell;
     type IntoIter = IterMut<'a>;
 
     fn into_iter(self) -> Self::IntoIter {

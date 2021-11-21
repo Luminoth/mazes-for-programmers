@@ -29,7 +29,7 @@ impl Generator for SidewinderParallel {
             .map(|row| {
                 let mut run = Vec::new();
                 row.iter()
-                    .filter_map(|cell| Sidewinder::link(grid, cell, &mut run))
+                    .filter_map(|cell| Sidewinder::link(grid, cell.as_ref().unwrap(), &mut run))
                     .collect::<Vec<(CellHandle, CellHandle)>>()
             })
             .flatten()

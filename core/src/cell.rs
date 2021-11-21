@@ -77,7 +77,9 @@ impl Cell {
 
     // TODO: this could be better if we didn't allocate a vec each time
     pub fn neighbors(&self) -> Vec<CellHandle> {
-        let mut neighbors = Vec::new();
+        assert!(!self.is_orphaned());
+
+        let mut neighbors = Vec::with_capacity(4);
 
         if let Some(neighbor) = self.north {
             neighbors.push(neighbor);
@@ -98,13 +100,9 @@ impl Cell {
         neighbors
     }
 
-    pub fn get_random_neighbor(&self) -> Option<CellHandle> {
-        if self.is_orphaned() {
-            None
-        } else {
-            let neighbors = self.neighbors();
-            Some(*sample(&neighbors))
-        }
+    pub fn get_random_neighbor(&self) -> CellHandle {
+        let neighbors = self.neighbors();
+        *sample(&neighbors)
     }
 
     // sets this cell as orphaned
@@ -147,26 +145,36 @@ impl Cell {
     }
 
     pub fn is_linked(&self, cell: CellHandle) -> bool {
+        assert!(!self.is_orphaned());
+
         self.links.contains(&cell)
     }
 
     // NOTE: this is not bidirectional
     // use Grid::link_cells() for that
     pub fn link(&mut self, cell: CellHandle) {
+        assert!(!self.is_orphaned());
+
         self.links.insert(cell);
     }
 
     // NOTE: this is not bidirectional
     // use Grid::unlink_cells() for that
     pub fn unlink(&mut self, cell: CellHandle) {
+        assert!(!self.is_orphaned());
+
         self.links.remove(&cell);
     }
 
     pub fn has_links(&self) -> bool {
+        assert!(!self.is_orphaned());
+
         !self.links.is_empty()
     }
 
     pub fn links(&self) -> Iter<'_, CellHandle> {
+        assert!(!self.is_orphaned());
+
         self.links.iter()
     }
 }

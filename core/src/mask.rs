@@ -40,9 +40,11 @@ impl Mask {
         self.bits.iter().filter(|x| *x).count()
     }
 
+    /// Returns a random enabled cell
     pub fn random(&self) -> (usize, usize) {
         let mut rng = rand::thread_rng();
 
+        // TODO: this could be smarter and avoid looping
         loop {
             let row = rng.gen_range(0..self.rows);
             let col = rng.gen_range(0..self.cols);

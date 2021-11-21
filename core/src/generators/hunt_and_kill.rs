@@ -24,20 +24,13 @@ impl Generator for HuntAndKill {
 
         while cell_handle.is_some() {
             let unvisited_neighbors = {
-                let cell = cell_handle.unwrap().get_cell(grid);
-                if let Some(cell) = cell {
-                    let mut neighbors = cell.neighbors();
-                    neighbors.retain(|neighbor_handle| {
-                        let neighbor = neighbor_handle.get_cell(grid);
-                        if let Some(neighbor) = neighbor {
-                            return !neighbor.has_links();
-                        }
-                        false
-                    });
-                    neighbors
-                } else {
-                    Vec::new()
-                }
+                let cell = cell_handle.unwrap().get_cell(grid).unwrap();
+                let mut neighbors = cell.neighbors();
+                neighbors.retain(|neighbor_handle| {
+                    let neighbor = neighbor_handle.get_cell(grid).unwrap();
+                    !neighbor.has_links()
+                });
+                neighbors
             };
 
             if !unvisited_neighbors.is_empty() {
@@ -52,11 +45,8 @@ impl Generator for HuntAndKill {
                 for cell in grid.iter() {
                     let mut visited_neighbors = cell.neighbors();
                     visited_neighbors.retain(|neighbor_handle| {
-                        let neighbor = neighbor_handle.get_cell(grid);
-                        if let Some(neighbor) = neighbor {
-                            return neighbor.has_links();
-                        }
-                        false
+                        let neighbor = neighbor_handle.get_cell(grid).unwrap();
+                        neighbor.has_links()
                     });
 
                     if !cell.has_links() && !visited_neighbors.is_empty() {

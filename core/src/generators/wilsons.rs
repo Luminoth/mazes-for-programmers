@@ -34,17 +34,15 @@ impl Generator for Wilsons {
             // building a path between them
             // erasing loops as we go
             while unvisited.contains(&cell_handle) {
-                let cell = cell_handle.get_cell(grid);
-                if let Some(cell) = cell {
-                    cell_handle = cell.get_random_neighbor().unwrap();
+                let cell = cell_handle.get_cell(grid).unwrap();
+                cell_handle = cell.get_random_neighbor();
 
-                    let position = path.iter().position(|&c| c == cell_handle);
-                    if let Some(position) = position {
-                        // we've hit a loop, so erase it
-                        path.truncate(position + 1);
-                    } else {
-                        path.push(cell_handle);
-                    }
+                let position = path.iter().position(|&c| c == cell_handle);
+                if let Some(position) = position {
+                    // we've hit a loop, so erase it
+                    path.truncate(position + 1);
+                } else {
+                    path.push(cell_handle);
                 }
             }
 
