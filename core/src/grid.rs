@@ -25,6 +25,7 @@ pub struct Grid {
 }
 
 impl Grid {
+    /// Creates a new grid of the given size
     pub fn new(rows: usize, cols: usize) -> Self {
         assert!(rows > 0 && cols > 0);
 
@@ -41,11 +42,12 @@ impl Grid {
         grid
     }
 
+    /// Creates a new grid from the given mask
     pub fn from_mask(mask: Mask) -> Self {
         let rows = mask.rows;
 
         let mut grid = Self {
-            rows: rows,
+            rows,
             cols: mask.cols,
             mask: Some(mask),
             grid: Vec::with_capacity(rows),
@@ -111,8 +113,8 @@ impl Grid {
         self.rows
     }
 
-    /// The number of cols in the grid
-    pub fn cols(&self) -> usize {
+    /// The number of columns in the grid
+    pub fn columns(&self) -> usize {
         self.cols
     }
 
@@ -135,7 +137,7 @@ impl Grid {
         self.iter().any(|x| !x.has_neighbors())
     }
 
-    /// Set of dead end cells (cells with only one link) in the grid
+    /// Gets the set of dead end cells -c ells with only one link - in the grid
     pub fn get_dead_ends(&self) -> Vec<&Cell> {
         self.iter()
             .filter(|&cell| cell.links().len() == 1)
@@ -218,7 +220,7 @@ impl Grid {
     }
 
     /// Returns an iterator over the grid cells
-    pub fn handles_iter(&self) -> HandlesIter<'_> {
+    pub(crate) fn handles_iter(&self) -> HandlesIter<'_> {
         HandlesIter::new(self)
     }
 
@@ -268,7 +270,7 @@ impl Grid {
         (new_start.unpack(), goal.unpack())
     }
 
-    pub fn empty_cell_contents(&self) -> (usize, String) {
+    pub(crate) fn empty_cell_contents(&self) -> (usize, String) {
         let digits = (self.size() as f64).log(36.0).ceil() as usize;
         (digits, str::repeat(" ", digits))
     }
@@ -285,7 +287,8 @@ impl Grid {
             let mut bottom = String::from("+");
 
             for cell in row {
-                if let Some(cell) = cell {
+                // TODO: this could be cleaner
+                let (body, east_boundary, south_boundary) = if let Some(cell) = cell {
                     let body = format!(
                         " {} ",
                         solver
@@ -293,7 +296,6 @@ impl Grid {
                             .unwrap_or_else(|| empty.clone())
                     );
 
-                    top.push_str(&body);
                     let east_boundary = if let Some(east) = cell.east {
                         if cell.is_linked(east) {
                             " "
@@ -303,7 +305,6 @@ impl Grid {
                     } else {
                         "|"
                     };
-                    top.push_str(east_boundary);
 
                     let south_boundary = if let Some(south) = cell.south {
                         if cell.is_linked(south) {
@@ -314,11 +315,20 @@ impl Grid {
                     } else {
                         format!("-{}-", str::repeat("-", digits))
                     };
-                    bottom.push_str(&south_boundary);
-                    bottom.push('+');
+
+                    (body, east_boundary, south_boundary)
                 } else {
-                    // TODO: render the empty cell
-                }
+                    (
+                        format!(" {} ", empty),
+                        "|",
+                        format!("-{}-", str::repeat("-", digits)),
+                    )
+                };
+
+                top.push_str(&body);
+                top.push_str(east_boundary);
+                bottom.push_str(&south_boundary);
+                bottom.push('+');
             }
 
             output.push_str(&top);
@@ -465,6 +475,7 @@ impl Renderable for Grid {
     }
 }
 
+/// Cell-based grid iterator
 pub struct Iter<'a> {
     grid: &'a Grid,
 
@@ -524,7 +535,7 @@ impl<'a> IntoIterator for &'a Grid {
     }
 }
 
-pub struct HandlesIter<'a> {
+pub(crate) struct HandlesIter<'a> {
     grid: &'a Grid,
 
     row: usize,
@@ -574,6 +585,7 @@ impl<'a> Iterator for HandlesIter<'a> {
     }
 }
 
+/// Mutable cell-based grid iterator
 pub struct IterMut<'a> {
     grid: &'a mut Grid,
 

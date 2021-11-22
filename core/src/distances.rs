@@ -1,8 +1,7 @@
 //use std::collections::hash_map::Keys;
 use std::collections::HashMap;
 
-use crate::CellHandle;
-use crate::Grid;
+use crate::{CellHandle, Grid};
 
 #[derive(Debug)]
 pub struct Distances {

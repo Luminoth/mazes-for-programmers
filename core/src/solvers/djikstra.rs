@@ -22,6 +22,7 @@ pub struct Djikstra {
 }
 
 impl Djikstra {
+    /// Creates a new Djikstra's algorithm solver
     pub fn new(grid: Grid, root_row: usize, root_column: usize) -> Self {
         Self {
             grid,
@@ -121,7 +122,7 @@ impl Solver for Djikstra {
         // for cell background coloring
         let distances = crate::distances(
             &self.grid,
-            CellHandle::new(self.grid.rows() / 2, self.grid.cols() / 2),
+            CellHandle::new(self.grid.rows() / 2, self.grid.columns() / 2),
         );
 
         let (_, max_distance) = distances.max_distance();

@@ -37,6 +37,7 @@ pub struct NoneSolver {
 }
 
 impl NoneSolver {
+    /// Creates a new none solver
     pub fn new(grid: Grid) -> Self {
         Self { grid }
     }

@@ -1,7 +1,7 @@
+use crate::util::sample;
 use crate::Grid;
 
 use super::Generator;
-use crate::util::sample;
 
 /// Hunt-and-Kill maze generator
 /// Selects random unvisited cells to visit until all of them are visited,
