@@ -3,6 +3,7 @@ use std::path::Path;
 
 use bit_vec::BitVec;
 use rand::Rng;
+use tracing::info;
 
 use crate::util::read_file_lines_no_empty;
 
@@ -31,6 +32,8 @@ impl Mask {
 
     /// Creates a new mask from a file
     pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
+        info!("Reading mask from file {:?} ...", path.as_ref());
+
         let lines: Vec<String> = read_file_lines_no_empty(path)?;
         if lines.is_empty() {
             return Err(io::Error::new(
@@ -55,6 +58,17 @@ impl Mask {
                 }
             }
         }
+
+        Ok(mask)
+    }
+
+    /// Creates a new mask from an image
+    pub fn from_image(path: impl AsRef<Path>) -> io::Result<Self> {
+        info!("Reading mask from image {:?} ...", path.as_ref());
+
+        // TODO:
+
+        let mask = Mask::new(10, 10);
 
         Ok(mask)
     }
