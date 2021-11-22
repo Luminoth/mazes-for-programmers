@@ -123,6 +123,10 @@ impl Grid {
         self.rows * self.cols
     }
 
+    pub(crate) fn index(&self, row: usize, col: usize) -> usize {
+        row * self.cols + col
+    }
+
     /// The number of enabled cells in the grid
     pub fn enabled_count(&self) -> usize {
         if let Some(mask) = &self.mask {
@@ -165,11 +169,20 @@ impl Grid {
     /// Returns a random enabled cell
     fn get_random_cell(&self) -> CellHandle {
         if let Some(mask) = &self.mask {
-            mask.random().into()
+            mask.get_random().into()
         } else {
             let mut rng = rand::thread_rng();
             (rng.gen_range(0..self.rows), rng.gen_range(0..self.cols)).into()
         }
+    }
+
+    /// Returns the first enabled cell
+    fn get_first_enabled(&self) -> Option<CellHandle> {
+        Some(if let Some(mask) = &self.mask {
+            mask.get_first_enabled()?.into()
+        } else {
+            CellHandle::new(0, 0)
+        })
     }
 
     /// Gets a reference to a random enabled cell
@@ -259,7 +272,7 @@ impl Grid {
 
     /// Compute the longest path through the maze
     pub fn longest_path(&self) -> ((usize, usize), (usize, usize)) {
-        let start = CellHandle::new(0, 0);
+        let start = self.get_first_enabled().unwrap();
 
         let distances = crate::distances(self, start);
         let (new_start, _) = distances.max_distance();
@@ -498,7 +511,7 @@ impl<'a> Iterator for Iter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let ret = loop {
-            let index = self.row * self.col;
+            let index = self.grid.index(self.row, self.col);
             if index >= self.grid.size() {
                 break None;
             }
@@ -557,7 +570,7 @@ impl<'a> Iterator for HandlesIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let ret = loop {
-            let index = self.row * self.col;
+            let index = self.grid.index(self.row, self.col);
             if index >= self.grid.size() {
                 break None;
             }
@@ -608,7 +621,7 @@ impl<'a> Iterator for IterMut<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let ret = loop {
-            let index = self.row * self.col;
+            let index = self.grid.index(self.row, self.col);
             if index >= self.grid.size() {
                 break None;
             }

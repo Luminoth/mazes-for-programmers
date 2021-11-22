@@ -45,19 +45,15 @@ fn main() -> anyhow::Result<()> {
     }
 
     let generator = options.generator.generator();
+    let mask = options.generator.mask();
     let grid = {
         info!(
-            "Generating {}x{} maze (masked={}) ...",
-            options.height,
-            options.width,
-            options.generator.use_mask()
+            "Generating {}x{} maze (mask={:?}) ...",
+            options.height, options.width, mask
         );
 
-        let mut grid = if options.generator.use_mask() {
-            let mut mask = Mask::new(options.height, options.width);
-            mask.set(1, 1, false);
-            mask.set(2, 2, false);
-            mask.set(4, 4, false);
+        let mut grid = if let Some(mask_path) = mask {
+            let mask = Mask::from_file(mask_path)?;
             Grid::from_mask(mask)
         } else {
             Grid::new(options.height, options.width)

@@ -39,15 +39,15 @@ impl GeneratorOption {
         matches!(self, GeneratorOption::Analysis(_))
     }
 
-    pub fn use_mask(&self) -> bool {
+    pub fn mask(&self) -> Option<PathBuf> {
         match self {
-            GeneratorOption::Analysis(_) => false,
-            GeneratorOption::BinaryTree(_) => false,
-            GeneratorOption::Sidewinder(_) => false,
-            GeneratorOption::AldousBroder(generator) => generator.masked,
-            GeneratorOption::Wilsons(generator) => generator.masked,
-            GeneratorOption::HuntAndKill(generator) => generator.masked,
-            GeneratorOption::RecursiveBacktracker(generator) => generator.masked,
+            GeneratorOption::Analysis(_) => None,
+            GeneratorOption::BinaryTree(_) => None,
+            GeneratorOption::Sidewinder(_) => None,
+            GeneratorOption::AldousBroder(generator) => generator.mask.clone(),
+            GeneratorOption::Wilsons(generator) => generator.mask.clone(),
+            GeneratorOption::HuntAndKill(generator) => generator.mask.clone(),
+            GeneratorOption::RecursiveBacktracker(generator) => generator.mask.clone(),
         }
     }
 
@@ -145,9 +145,9 @@ pub struct AldousBroderGenerator {
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
 
-    /// mask the grid (hardcoded)
-    #[argh(switch)]
-    pub masked: bool,
+    /// mask the grid with the given file
+    #[argh(option)]
+    pub mask: Option<PathBuf>,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -158,9 +158,9 @@ pub struct WilsonsGenerator {
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
 
-    /// mask the grid (hardcoded)
-    #[argh(switch)]
-    pub masked: bool,
+    /// mask the grid with the given file
+    #[argh(option)]
+    pub mask: Option<PathBuf>,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -171,9 +171,9 @@ pub struct HuntAndKillGenerator {
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
 
-    /// mask the grid (hardcoded)
-    #[argh(switch)]
-    pub masked: bool,
+    /// mask the grid with the given file
+    #[argh(option)]
+    pub mask: Option<PathBuf>,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -184,9 +184,9 @@ pub struct RecursiveBacktrackerGenerator {
     #[argh(subcommand)]
     pub solver: Option<SolverOption>,
 
-    /// mask the grid (hardcoded)
-    #[argh(switch)]
-    pub masked: bool,
+    /// mask the grid with the given file
+    #[argh(option)]
+    pub mask: Option<PathBuf>,
 }
 
 #[derive(FromArgs, PartialEq, Debug, Display, Clone)]

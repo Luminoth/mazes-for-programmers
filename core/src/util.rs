@@ -1,4 +1,24 @@
+use std::fs;
+use std::io::{self, BufRead};
+use std::path::Path;
+
 use rand::Rng;
+
+/// Reads a file, removing empty lines
+pub fn read_file_lines_no_empty(path: impl AsRef<Path>) -> io::Result<Vec<String>> {
+    let file = fs::File::open(path)?;
+    let reader = io::BufReader::new(file);
+
+    // TODO: pass up the io error here rather than unwrapping it
+    let lines: Vec<String> = reader
+        .lines()
+        .map(Result::unwrap)
+        .map(|x| x.trim().to_string())
+        .filter(|x| !x.is_empty())
+        .collect();
+
+    Ok(lines)
+}
 
 #[derive(Debug, Default, Copy, Clone)]
 pub struct Color {
