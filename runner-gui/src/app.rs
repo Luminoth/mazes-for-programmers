@@ -13,6 +13,8 @@ use mazecore::Grid;
 
 // TODO: all of this would be cleaner with macros
 
+// TODO: masking
+
 #[derive(Debug, Copy, Clone, PartialEq, EnumIter, Derivative, Display)]
 #[derivative(Default)]
 pub enum GeneratorType {

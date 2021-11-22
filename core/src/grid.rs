@@ -4,7 +4,7 @@ use std::iter::Iterator;
 use std::path::Path;
 
 use rand::Rng;
-//use tracing::debug;
+use tracing::debug;
 
 use crate::solvers::Solver;
 use crate::util::{horizontal_line, quad, vertical_line, Color};
@@ -433,17 +433,16 @@ impl Grid {
         solver: Option<&impl Solver>,
         color: bool,
     ) -> io::Result<()> {
-        let file = fs::File::create(path)?;
-        let w = io::BufWriter::new(file);
-
         let (width, height, data) = self.generate_image(cell_size, solver, color);
 
-        let mut encoder = png::Encoder::new(w, width as u32, height as u32);
+        let file = fs::File::create(path)?;
+        let writer = io::BufWriter::new(file);
+        let mut encoder = png::Encoder::new(writer, width as u32, height as u32);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
         let mut writer = encoder.write_header()?;
 
-        //debug!("data size: {}", data.len());
+        debug!("data size: {}", data.len());
         writer.write_image_data(&data)?;
 
         Ok(())

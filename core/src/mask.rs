@@ -1,9 +1,10 @@
+use std::fs;
 use std::io;
 use std::path::Path;
 
 use bit_vec::BitVec;
 use rand::Rng;
-use tracing::info;
+use tracing::{debug, info};
 
 use crate::util::read_file_lines_no_empty;
 
@@ -51,8 +52,8 @@ impl Mask {
 
         let mut mask = Mask::new(lines.len(), lines[0].len());
 
-        for (rowi, row) in lines.iter().enumerate().take(mask.rows) {
-            for (coli, ch) in row.chars().enumerate().take(mask.cols) {
+        for (rowi, row) in lines.iter().enumerate() {
+            for (coli, ch) in row.chars().enumerate() {
                 if ch == 'x' || ch == 'X' {
                     mask.set(rowi, coli, false);
                 }
@@ -66,9 +67,40 @@ impl Mask {
     pub fn from_image(path: impl AsRef<Path>) -> io::Result<Self> {
         info!("Reading mask from image {:?} ...", path.as_ref());
 
-        // TODO:
+        let file = fs::File::open(path)?;
+        let decoder = png::Decoder::new(file);
+        let mut reader = decoder.read_info()?;
+        let mut buf = vec![0; reader.output_buffer_size()];
+        let info = reader.next_frame(&mut buf)?;
 
-        let mask = Mask::new(10, 10);
+        if info.color_type != png::ColorType::Rgba {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "Invalid mask - must be rgba",
+            ));
+        }
+
+        if info.bit_depth != png::BitDepth::Eight {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "Invalid mask - bit depth must be 8",
+            ));
+        }
+
+        debug!("data size: {}", info.buffer_size());
+        let data = &buf[..info.buffer_size()];
+
+        let mut mask = Mask::new(info.height as usize, info.width as usize);
+
+        for row in 0..mask.rows {
+            for col in (0..mask.cols * 4).step_by(4) {
+                // transparency disables cells
+                let index = mask.index(row, col);
+                if data[index + 3] != 255 {
+                    mask.set(row, col, false);
+                }
+            }
+        }
 
         Ok(mask)
     }

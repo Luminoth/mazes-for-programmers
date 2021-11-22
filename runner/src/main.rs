@@ -12,6 +12,8 @@ use mazecore::{Grid, Mask};
 
 use options::Options;
 
+// TODO: image masking needs to be tested
+
 fn init_logging() -> anyhow::Result<()> {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
@@ -28,7 +30,7 @@ fn render(solver: &dyn Solver, filename: &Option<impl AsRef<Path>>) -> anyhow::R
     if let Some(filename) = filename {
         info!("Saving to {:?} ...", filename.as_ref());
 
-        solver.save_png(filename.as_ref(), 50)?;
+        solver.save_png(filename.as_ref(), 25)?;
     }
 
     Ok(())
