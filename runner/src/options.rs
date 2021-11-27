@@ -35,6 +35,10 @@ pub enum GeneratorOption {
 }
 
 impl GeneratorOption {
+    pub fn validate(&self) -> anyhow::Result<()> {
+        Ok(())
+    }
+
     pub fn is_analysis(&self) -> bool {
         matches!(self, GeneratorOption::Analysis(_))
     }
@@ -48,6 +52,18 @@ impl GeneratorOption {
             GeneratorOption::Wilsons(generator) => generator.mask.clone(),
             GeneratorOption::HuntAndKill(generator) => generator.mask.clone(),
             GeneratorOption::RecursiveBacktracker(generator) => generator.mask.clone(),
+        }
+    }
+
+    pub fn is_polar(&self) -> bool {
+        match self {
+            GeneratorOption::Analysis(_) => false,
+            GeneratorOption::BinaryTree(generator) => generator.polar,
+            GeneratorOption::Sidewinder(generator) => generator.polar,
+            GeneratorOption::AldousBroder(generator) => generator.polar,
+            GeneratorOption::Wilsons(generator) => generator.polar,
+            GeneratorOption::HuntAndKill(generator) => generator.polar,
+            GeneratorOption::RecursiveBacktracker(generator) => generator.polar,
         }
     }
 
@@ -122,6 +138,10 @@ pub struct BinaryTreeGenerator {
     /// run the parallelized generator
     #[argh(switch)]
     pub parallel: bool,
+
+    /// use a polar grid
+    #[argh(switch)]
+    pub polar: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -135,6 +155,10 @@ pub struct SidewinderGenerator {
     /// run the parallelized generator
     #[argh(switch)]
     pub parallel: bool,
+
+    /// use a polar grid
+    #[argh(switch)]
+    pub polar: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -148,6 +172,10 @@ pub struct AldousBroderGenerator {
     /// mask the grid with the given file
     #[argh(option)]
     pub mask: Option<PathBuf>,
+
+    /// use a polar grid
+    #[argh(switch)]
+    pub polar: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -161,6 +189,10 @@ pub struct WilsonsGenerator {
     /// mask the grid with the given file
     #[argh(option)]
     pub mask: Option<PathBuf>,
+
+    /// use a polar grid
+    #[argh(switch)]
+    pub polar: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -174,6 +206,10 @@ pub struct HuntAndKillGenerator {
     /// mask the grid with the given file
     #[argh(option)]
     pub mask: Option<PathBuf>,
+
+    /// use a polar grid
+    #[argh(switch)]
+    pub polar: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug)]
@@ -187,6 +223,10 @@ pub struct RecursiveBacktrackerGenerator {
     /// mask the grid with the given file
     #[argh(option)]
     pub mask: Option<PathBuf>,
+
+    /// use a polar grid
+    #[argh(switch)]
+    pub polar: bool,
 }
 
 #[derive(FromArgs, PartialEq, Debug, Display, Clone)]
@@ -240,4 +280,12 @@ pub struct Options {
     /// filename to render to
     #[argh(option)]
     pub filename: Option<PathBuf>,
+}
+
+impl Options {
+    pub fn validate(&self) -> anyhow::Result<()> {
+        self.generator.validate()?;
+
+        Ok(())
+    }
 }

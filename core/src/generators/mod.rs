@@ -25,8 +25,8 @@ pub trait Generator {
     fn name(&self) -> &str;
 
     /// Generates a new grid-based maze
-    fn generate(&self, rows: usize, cols: usize) -> Grid {
-        let mut grid = Grid::new(rows, cols);
+    fn generate(&self, rows: usize, cols: usize, polar: bool) -> Grid {
+        let mut grid = Grid::new(rows, cols, polar);
 
         self.run(&mut grid);
 

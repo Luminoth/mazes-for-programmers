@@ -7,7 +7,7 @@ use rand::Rng;
 use tracing::debug;
 
 use crate::solvers::Solver;
-use crate::util::{horizontal_line, quad, vertical_line, Color};
+use crate::util::{circle, horizontal_line, quad, vertical_line, Color};
 use crate::{Cell, CellHandle, Mask, Renderable};
 
 /// Grid-based maze data structure
@@ -15,6 +15,8 @@ use crate::{Cell, CellHandle, Mask, Renderable};
 pub struct Grid {
     rows: usize,
     cols: usize,
+
+    polar: bool,
 
     mask: Option<Mask>,
 
@@ -26,12 +28,13 @@ pub struct Grid {
 
 impl Grid {
     /// Creates a new grid of the given size
-    pub fn new(rows: usize, cols: usize) -> Self {
+    pub fn new(rows: usize, cols: usize, polar: bool) -> Self {
         assert!(rows > 0 && cols > 0);
 
         let mut grid = Self {
             rows,
             cols,
+            polar,
             mask: None,
             grid: Vec::with_capacity(rows),
         };
@@ -43,12 +46,13 @@ impl Grid {
     }
 
     /// Creates a new grid from the given mask
-    pub fn from_mask(mask: Mask) -> Self {
+    pub fn from_mask(mask: Mask, polar: bool) -> Self {
         let rows = mask.rows;
 
         let mut grid = Self {
             rows,
             cols: mask.cols,
+            polar,
             mask: Some(mask),
             grid: Vec::with_capacity(rows),
         };
@@ -134,6 +138,11 @@ impl Grid {
         } else {
             self.rows * self.cols
         }
+    }
+
+    /// Is this a polar grid?
+    pub fn is_polar(&self) -> bool {
+        self.polar
     }
 
     /// Returns true if the grid contains any orphaned cells
@@ -289,6 +298,10 @@ impl Grid {
     }
 
     pub(crate) fn render_ascii_internal(&self, solver: Option<&impl Solver>) -> String {
+        if self.polar {
+            return "Cannot render polar grid".to_string();
+        }
+
         let (digits, empty) = self.empty_cell_contents();
         let mut output = format!(
             "+{}\n",
@@ -354,6 +367,80 @@ impl Grid {
         output
     }
 
+    fn render_cell(
+        &self,
+        cell: &Cell,
+        cell_size: usize,
+        image_dimensions: (usize, usize),
+        image_center: (f64, f64),
+        wall: Color,
+        mut data: impl AsMut<[u8]>,
+    ) {
+        if self.polar {
+            // cell angle
+            let theta = 2.0 * std::f64::consts::PI / self.grid[cell.row].len() as f64;
+
+            // inner / outer wall distance from center
+            let inner_radius = (cell.row * cell_size) as f64;
+            let outer_radius = ((cell.row + 1) * cell_size) as f64;
+
+            // cell wall angles
+            let theta_ccw = cell.col as f64 * theta;
+            let theta_cw = (cell.col + 1) as f64 * theta;
+
+            // cell walls
+            let ax = (image_center.0 + (inner_radius * theta_ccw.cos())) as usize;
+            let ay = (image_center.1 + (inner_radius * theta_ccw.sin())) as usize;
+            let bx = (image_center.0 + (outer_radius * theta_ccw.cos())) as usize;
+            let by = (image_center.1 + (outer_radius * theta_ccw.sin())) as usize;
+            let cx = (image_center.0 + (inner_radius * theta_cw.cos())) as usize;
+            let cy = (image_center.1 + (inner_radius * theta_cw.sin())) as usize;
+            let dx = (image_center.0 + (outer_radius * theta_cw.cos())) as usize;
+            let dy = (image_center.1 + (outer_radius * theta_cw.sin())) as usize;
+
+            if let Some(north) = cell.north {
+                if !cell.is_linked(north) {
+                    crate::util::line(&mut data, ax, ay, bx, by, wall);
+                }
+            }
+
+            if let Some(east) = cell.east {
+                if !cell.is_linked(east) {
+                    crate::util::line(&mut data, cx, cy, dx, dy, wall);
+                }
+            }
+        } else {
+            let x1 = 1 + (cell.col * cell_size);
+            let y1 = 1 + (cell.row * cell_size);
+            let x2 = (cell.col + 1) * cell_size;
+            let y2 = (cell.row + 1) * cell_size;
+
+            if cell.north.is_none() {
+                horizontal_line(&mut data, image_dimensions.0, x1, x2, y1, wall);
+            }
+
+            if cell.west.is_none() {
+                vertical_line(&mut data, image_dimensions.0, x1, y1, y2, wall);
+            }
+
+            if let Some(east) = cell.east {
+                if !cell.is_linked(east) {
+                    vertical_line(&mut data, image_dimensions.0, x2, y1, y2, wall);
+                }
+            } else {
+                vertical_line(&mut data, image_dimensions.0, x2, y1, y2, wall);
+            }
+
+            if let Some(south) = cell.south {
+                if !cell.is_linked(south) {
+                    horizontal_line(&mut data, image_dimensions.0, x1, x2, y2, wall);
+                }
+            } else {
+                horizontal_line(&mut data, image_dimensions.0, x1, x2, y2, wall);
+            }
+        }
+    }
+
     fn generate_image(
         &self,
         cell_size: usize,
@@ -362,16 +449,18 @@ impl Grid {
     ) -> (usize, usize, Vec<u8>) {
         let wall = Color::new(0, 0, 0, 255);
 
-        // width / height in pixels
+        // iamge width / height in pixels
         // (plus 2 for the edge walls)
-        let width = (cell_size * self.cols) + 2;
-        let height = (cell_size * self.rows) + 2;
+        let image_width = (cell_size * self.cols) + 2;
+        let image_height = (cell_size * self.rows) + 2;
 
         // size in bytes (4 bytes per-pixel)
-        let size = width * height * 4;
+        let image_size = image_width * image_height * 4;
+
+        let image_center = (image_width as f64 / 2.0, image_height as f64 / 2.0);
 
         // init image to the background color for each cell
-        let mut data = vec![0; size];
+        let mut data = vec![0; image_size];
         for cell in self {
             let cell_handle = cell.handle();
 
@@ -388,42 +477,32 @@ impl Grid {
             let x2 = (cell.col + 1) * cell_size;
             let y2 = (cell.row + 1) * cell_size;
 
-            quad(&mut data, width, x1, y1, x2, y2, background);
+            quad(&mut data, image_width, x1, y1, x2, y2, background);
         }
 
         // draw the cell walls
         for cell in self {
-            let x1 = 1 + (cell.col * cell_size);
-            let y1 = 1 + (cell.row * cell_size);
-            let x2 = (cell.col + 1) * cell_size;
-            let y2 = (cell.row + 1) * cell_size;
-
-            if cell.north.is_none() {
-                horizontal_line(&mut data, width, x1, x2, y1, wall);
-            }
-
-            if cell.west.is_none() {
-                vertical_line(&mut data, width, x1, y1, y2, wall);
-            }
-
-            if let Some(east) = cell.east {
-                if !cell.is_linked(east) {
-                    vertical_line(&mut data, width, x2, y1, y2, wall);
-                }
-            } else {
-                vertical_line(&mut data, width, x2, y1, y2, wall);
-            }
-
-            if let Some(south) = cell.south {
-                if !cell.is_linked(south) {
-                    horizontal_line(&mut data, width, x1, x2, y2, wall);
-                }
-            } else {
-                horizontal_line(&mut data, width, x1, x2, y2, wall);
-            }
+            self.render_cell(
+                cell,
+                cell_size,
+                (image_width, image_height),
+                image_center,
+                wall,
+                &mut data,
+            );
         }
 
-        (width, height, data)
+        // draw the outermost wall of the maze
+        if self.polar {
+            circle(
+                &mut data,
+                (image_center.0 as usize, image_center.1 as usize),
+                self.grid.len() * cell_size,
+                wall,
+            );
+        }
+
+        (image_width, image_height, data)
     }
 
     fn save_png(
@@ -433,11 +512,11 @@ impl Grid {
         solver: Option<&impl Solver>,
         color: bool,
     ) -> io::Result<()> {
-        let (width, height, data) = self.generate_image(cell_size, solver, color);
+        let (image_width, image_height, data) = self.generate_image(cell_size, solver, color);
 
         let file = fs::File::create(path)?;
         let writer = io::BufWriter::new(file);
-        let mut encoder = png::Encoder::new(writer, width as u32, height as u32);
+        let mut encoder = png::Encoder::new(writer, image_width as u32, image_height as u32);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
         let mut writer = encoder.write_header()?;

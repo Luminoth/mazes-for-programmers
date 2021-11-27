@@ -18,6 +18,7 @@ pub fn run(rows: usize, cols: usize, tries: usize) {
 
     // TODO: run timing analysis
     // TODO: can we also run mem usage analysis?
+    // TODO: is it worth testing polar grids?
 
     let mut averages = HashMap::new();
     for generator in &generators {
@@ -25,7 +26,7 @@ pub fn run(rows: usize, cols: usize, tries: usize) {
 
         let mut deadend_counts = Vec::new();
         for _ in 0..tries {
-            let grid = generator.generate(rows, cols);
+            let grid = generator.generate(rows, cols, false);
             deadend_counts.push(grid.get_dead_ends().len());
         }
 

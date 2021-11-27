@@ -40,6 +40,7 @@ fn main() -> anyhow::Result<()> {
     init_logging()?;
 
     let options: Options = argh::from_env();
+    options.validate()?;
 
     if options.generator.is_analysis() {
         analysis::run(options.width, options.height, 100);
@@ -50,15 +51,18 @@ fn main() -> anyhow::Result<()> {
     let mask = options.generator.mask();
     let grid = {
         info!(
-            "Generating {}x{} maze (mask={:?}) ...",
-            options.height, options.width, mask
+            "Generating {}x{} maze (mask={:?}) (polar={}) ...",
+            options.height,
+            options.width,
+            mask,
+            options.generator.is_polar()
         );
 
         let mut grid = if let Some(mask_path) = mask {
             let mask = Mask::from_file(mask_path)?;
-            Grid::from_mask(mask)
+            Grid::from_mask(mask, options.generator.is_polar())
         } else {
-            Grid::new(options.height, options.width)
+            Grid::new(options.height, options.width, options.generator.is_polar())
         };
 
         info!("Running maze generator {} ...", generator.name());

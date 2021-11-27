@@ -39,7 +39,7 @@ impl Color {
 /// Renders a quad in the given data
 pub fn quad(
     mut data: impl AsMut<[u8]>,
-    width: usize,
+    image_width: usize,
     x1: usize,
     y1: usize,
     x2: usize,
@@ -48,43 +48,60 @@ pub fn quad(
 ) {
     for y in y1..=y2 {
         for x in x1..=x2 {
-            plot(data.as_mut(), width, x, y, color);
+            plot(data.as_mut(), image_width, x, y, color);
         }
     }
+}
+
+/// Renders a circle in the given data
+pub fn circle(mut _data: impl AsMut<[u8]>, _center: (usize, usize), _radius: usize, _color: Color) {
+    // TODO:
+}
+
+/// Renders a  line in the given data
+pub fn line(
+    mut _data: impl AsMut<[u8]>,
+    _x1: usize,
+    _y1: usize,
+    _x2: usize,
+    _y2: usize,
+    _color: Color,
+) {
+    // TODO:
 }
 
 /// Renders a horizontal line in the given data
 pub fn horizontal_line(
     mut data: impl AsMut<[u8]>,
-    width: usize,
+    image_width: usize,
     x1: usize,
     x2: usize,
     y: usize,
     color: Color,
 ) {
     for x in x1..=x2 {
-        plot(data.as_mut(), width, x, y, color);
+        plot(data.as_mut(), image_width, x, y, color);
     }
 }
 
 /// Renders a vertical line in the given data
 pub fn vertical_line(
     mut data: impl AsMut<[u8]>,
-    width: usize,
+    image_width: usize,
     x: usize,
     y1: usize,
     y2: usize,
     color: Color,
 ) {
     for y in y1..=y2 {
-        plot(data.as_mut(), width, x, y, color);
+        plot(data.as_mut(), image_width, x, y, color);
     }
 }
 
-fn plot(mut data: impl AsMut<[u8]>, width: usize, x: usize, y: usize, color: Color) {
+fn plot(mut data: impl AsMut<[u8]>, image_width: usize, x: usize, y: usize, color: Color) {
     let data = data.as_mut();
 
-    let index = ((y * width) + x) * 4;
+    let index = ((y * image_width) + x) * 4;
     data[index] = color.r;
     data[index + 1] = color.g;
     data[index + 2] = color.b;

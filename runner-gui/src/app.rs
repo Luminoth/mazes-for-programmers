@@ -88,6 +88,9 @@ pub struct RunnerApp {
     #[derivative(Default(value = "20"))]
     height: usize,
 
+    #[derivative(Default(value = "false"))]
+    polar: bool,
+
     generator_type: GeneratorType,
     solver_type: SolverType,
 
@@ -140,7 +143,7 @@ impl RunnerApp {
                 info!("Running maze generator {} ...", generator.name());
 
                 let now = Instant::now();
-                let grid = generator.generate(self.height, self.width);
+                let grid = generator.generate(self.height, self.width, self.polar);
                 self.generate_time = now.elapsed().as_secs_f64() * 1000.0;
 
                 grid
@@ -201,6 +204,7 @@ impl epi::App for RunnerApp {
 
             ui.add(egui::Slider::new(&mut self.width, 1..=500).text("Width"));
             ui.add(egui::Slider::new(&mut self.height, 1..=500).text("Height"));
+            ui.checkbox(&mut self.polar, "Polar");
 
             ui.horizontal(|ui| {
                 self.add_generate_button(ui);
