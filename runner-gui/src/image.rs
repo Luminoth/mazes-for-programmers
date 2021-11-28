@@ -1,6 +1,7 @@
 use eframe::egui;
 
-// taken from the egui_demo_lib's http_app demo
+// taken from the egui_demo_lib's http_app demo:
+// https://github.com/emilk/egui/blob/master/egui_demo_lib/src/apps/http_app.rs
 
 #[derive(Debug, Clone)]
 pub struct Image {
