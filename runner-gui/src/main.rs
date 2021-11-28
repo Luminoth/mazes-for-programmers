@@ -1,4 +1,6 @@
 mod app;
+mod image;
+mod texture;
 
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;

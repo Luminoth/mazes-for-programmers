@@ -137,6 +137,10 @@ impl Renderable for Djikstra {
         self.grid.render_ascii_internal(Some(self))
     }
 
+    fn render(&self, cell_size: usize, color: bool) -> ((usize, usize), Vec<u8>) {
+        self.grid.render_internal(cell_size, Some(self), color)
+    }
+
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()> {
         self.grid.save_png_internal(path, cell_size, Some(self))
     }

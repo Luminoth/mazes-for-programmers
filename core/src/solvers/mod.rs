@@ -60,6 +60,10 @@ impl Renderable for NoneSolver {
         self.grid.render_ascii()
     }
 
+    fn render(&self, cell_size: usize, color: bool) -> ((usize, usize), Vec<u8>) {
+        self.grid.render(cell_size, color)
+    }
+
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()> {
         self.grid.save_png(path, cell_size)
     }

@@ -11,6 +11,9 @@ use mazecore::generators::*;
 use mazecore::solvers::*;
 use mazecore::Grid;
 
+use crate::image::Image;
+use crate::texture::Texture;
+
 // TODO: all of this would be cleaner with macros
 
 // TODO: masking
@@ -99,7 +102,7 @@ pub struct RunnerApp {
     generate_time: f64,
     longest_path_time: f64,
     solve_time: f64,
-    maze_ascii: String,
+    maze_texture: Texture,
 }
 
 impl RunnerApp {
@@ -132,7 +135,7 @@ impl RunnerApp {
             });
     }
 
-    fn add_generate_button(&mut self, ui: &mut egui::Ui) {
+    fn add_generate_button(&mut self, ui: &mut egui::Ui, frame: &mut epi::Frame<'_>) {
         // TODO: make this async / threaded and disable the button while generating
 
         if ui.button("Generate Maze").clicked() {
@@ -174,13 +177,19 @@ impl RunnerApp {
                 self.solve_time = now.elapsed().as_secs_f64() * 1000.0;
             }
 
-            self.maze_ascii = solver.render_ascii();
+            //println!("\n{}\n", solver.render_ascii());
+
+            // render the maze texture
+            let (size, pixels) = solver.render(25, true);
+            let image = Image::from_pixels(size, pixels);
+            self.maze_texture.load(frame, &image);
+
             self.dead_ends = solver.grid().get_dead_ends().len();
             self.maze_renderable = Some(solver);
         }
     }
 
-    fn add_save_button(&mut self, ui: &mut egui::Ui) {
+    fn add_save_button(&self, ui: &mut egui::Ui) {
         if ui.button("Save Maze").clicked() {
             /*let filename = ...;
             info!("Saving to {:?} ...", filename.as_ref());
@@ -190,6 +199,22 @@ impl RunnerApp {
             }*/
         }
     }
+
+    fn add_stats(&self, ui: &mut egui::Ui) {
+        ui.label(format!("Dead ends: {}", self.dead_ends));
+        ui.label(format!("Generate time: {:.2}ms", self.generate_time));
+        ui.label(format!(
+            "Longest path time: {:.2}ms",
+            self.longest_path_time
+        ));
+        ui.label(format!("Solve time: {:.2}ms", self.solve_time));
+    }
+
+    fn add_maze(&self, ui: &mut egui::Ui, texture_id: egui::TextureId) {
+        egui::ScrollArea::both().show(ui, |ui| {
+            ui.image(texture_id, self.maze_texture.size());
+        });
+    }
 }
 
 impl epi::App for RunnerApp {
@@ -197,7 +222,7 @@ impl epi::App for RunnerApp {
         "Maze Runner"
     }
 
-    fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
+    fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
         egui::CentralPanel::default().show(ctx, |ui| {
             self.add_generators_select(ui);
             self.add_solvers_select(ui);
@@ -207,33 +232,23 @@ impl epi::App for RunnerApp {
             ui.checkbox(&mut self.polar, "Polar");
 
             ui.horizontal(|ui| {
-                self.add_generate_button(ui);
+                self.add_generate_button(ui, frame);
+
+                ui.set_enabled(self.maze_texture.id().is_some());
                 self.add_save_button(ui);
+                ui.set_enabled(true);
             });
 
             ui.separator();
 
-            //ui.horizontal(|ui| {
-            ui.label(format!("Dead ends: {}", self.dead_ends));
-            ui.label(format!("Generate time: {:.2}ms", self.generate_time));
-            ui.label(format!(
-                "Longest path time: {:.2}ms",
-                self.longest_path_time
-            ));
-            ui.label(format!("Solve time: {:.2}ms", self.solve_time));
-            //});
+            if let Some(texture_id) = self.maze_texture.id() {
+                self.add_stats(ui);
+                self.add_maze(ui, texture_id);
+            } else {
+                ui.label("Generate a maze!");
+            }
 
-            // TODO: rendering as text is not what we ultimately want here
-            // but for now, is there a way to disable vertical wrapping on it?
-            egui::ScrollArea::both().show(ui, |ui| {
-                ui.add_sized(
-                    ui.available_size(),
-                    egui::TextEdit::multiline(&mut self.maze_ascii.as_str())
-                        .text_style(egui::TextStyle::Monospace),
-                );
-            });
-
-            // TODO: fix the scroll area height and move the buttons down here
+            // TODO: fix the maze scroll area height and move the buttons down here
         });
     }
 }

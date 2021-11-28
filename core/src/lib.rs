@@ -19,6 +19,9 @@ pub trait Renderable {
     /// Renders the renderable to the CLI
     fn render_ascii(&self) -> String;
 
+    /// Renders the renderable to a buffer
+    fn render(&self, cell_size: usize, color: bool) -> ((usize, usize), Vec<u8>);
+
     /// Saves the renderable as a PNG at the given path
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()>;
 }

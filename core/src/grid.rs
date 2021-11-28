@@ -441,12 +441,12 @@ impl Grid {
         }
     }
 
-    fn generate_image(
+    pub(crate) fn render_internal(
         &self,
         cell_size: usize,
         solver: Option<&impl Solver>,
         color: bool,
-    ) -> (usize, usize, Vec<u8>) {
+    ) -> ((usize, usize), Vec<u8>) {
         let wall = Color::new(0, 0, 0, 255);
 
         // iamge width / height in pixels
@@ -502,7 +502,7 @@ impl Grid {
             );
         }
 
-        (image_width, image_height, data)
+        ((image_width, image_height), data)
     }
 
     fn save_png(
@@ -512,7 +512,7 @@ impl Grid {
         solver: Option<&impl Solver>,
         color: bool,
     ) -> io::Result<()> {
-        let (image_width, image_height, data) = self.generate_image(cell_size, solver, color);
+        let ((image_width, image_height), data) = self.render_internal(cell_size, solver, color);
 
         let file = fs::File::create(path)?;
         let writer = io::BufWriter::new(file);
@@ -559,6 +559,10 @@ impl Grid {
 impl Renderable for Grid {
     fn render_ascii(&self) -> String {
         self.render_ascii_internal(None::<&crate::solvers::Djikstra>)
+    }
+
+    fn render(&self, cell_size: usize, color: bool) -> ((usize, usize), Vec<u8>) {
+        self.render_internal(cell_size, None::<&crate::solvers::Djikstra>, color)
     }
 
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()> {
