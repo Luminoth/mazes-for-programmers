@@ -367,7 +367,7 @@ impl Grid {
         output
     }
 
-    fn render_cell(
+    fn render_cell_polar(
         &self,
         cell: &Cell,
         cell_size: usize,
@@ -376,68 +376,91 @@ impl Grid {
         wall: Color,
         mut data: impl AsMut<[u8]>,
     ) {
-        if self.polar {
-            // cell angle
-            let theta = (2.0 * std::f64::consts::PI) / self.grid[cell.row].len() as f64;
+        // cell angle
+        let theta = (2.0 * std::f64::consts::PI) / self.grid[cell.row].len() as f64;
 
-            // inner / outer wall distance from center
-            let inner_radius = (cell.row * cell_size) as f64;
-            let outer_radius = ((cell.row + 1) * cell_size) as f64;
+        // inner / outer wall distance from center
+        let inner_radius = (cell.row * cell_size) as f64;
+        let outer_radius = ((cell.row + 1) * cell_size) as f64;
 
-            // cell wall angles
-            let theta_ccw = cell.col as f64 * theta;
-            let theta_cw = (cell.col + 1) as f64 * theta;
+        // cell wall angles
+        let theta_ccw = cell.col as f64 * theta;
+        let theta_cw = (cell.col + 1) as f64 * theta;
 
-            // cell walls
-            let ax = (image_center.0 + (inner_radius * theta_ccw.cos())) as usize;
-            let ay = (image_center.1 + (inner_radius * theta_ccw.sin())) as usize;
-            let _bx = (image_center.0 + (outer_radius * theta_ccw.cos())) as usize;
-            let _by = (image_center.1 + (outer_radius * theta_ccw.sin())) as usize;
-            let cx = (image_center.0 + (inner_radius * theta_cw.cos())) as usize;
-            let cy = (image_center.1 + (inner_radius * theta_cw.sin())) as usize;
-            let dx = (image_center.0 + (outer_radius * theta_cw.cos())) as usize;
-            let dy = (image_center.1 + (outer_radius * theta_cw.sin())) as usize;
+        // cell walls
+        let ax = (image_center.0 + (inner_radius * theta_ccw.cos())) as usize;
+        let ay = (image_center.1 + (inner_radius * theta_ccw.sin())) as usize;
+        let _bx = (image_center.0 + (outer_radius * theta_ccw.cos())) as usize;
+        let _by = (image_center.1 + (outer_radius * theta_ccw.sin())) as usize;
+        let cx = (image_center.0 + (inner_radius * theta_cw.cos())) as usize;
+        let cy = (image_center.1 + (inner_radius * theta_cw.sin())) as usize;
+        let dx = (image_center.0 + (outer_radius * theta_cw.cos())) as usize;
+        let dy = (image_center.1 + (outer_radius * theta_cw.sin())) as usize;
 
-            if let Some(north) = cell.north {
-                if !cell.is_linked(north) {
-                    crate::util::line(&mut data, image_dimensions, ax, ay, cx, cy, wall);
-                }
+        if let Some(north) = cell.north {
+            if !cell.is_linked(north) {
+                crate::util::line(&mut data, image_dimensions, ax, ay, cx, cy, wall);
             }
+        }
 
-            if let Some(east) = cell.east {
-                if !cell.is_linked(east) {
-                    crate::util::line(&mut data, image_dimensions, cx, cy, dx, dy, wall);
-                }
+        if let Some(east) = cell.east {
+            if !cell.is_linked(east) {
+                crate::util::line(&mut data, image_dimensions, cx, cy, dx, dy, wall);
             }
-        } else {
-            let x1 = 1 + (cell.col * cell_size);
-            let y1 = 1 + (cell.row * cell_size);
-            let x2 = (cell.col + 1) * cell_size;
-            let y2 = (cell.row + 1) * cell_size;
+        }
+    }
 
-            if cell.north.is_none() {
-                crate::util::line(&mut data, image_dimensions, x1, y1, x2, y1, wall);
-            }
+    fn render_cell_orthogonal(
+        &self,
+        cell: &Cell,
+        cell_size: usize,
+        image_dimensions: (usize, usize),
+        wall: Color,
+        mut data: impl AsMut<[u8]>,
+    ) {
+        let x1 = 1 + (cell.col * cell_size);
+        let y1 = 1 + (cell.row * cell_size);
+        let x2 = (cell.col + 1) * cell_size;
+        let y2 = (cell.row + 1) * cell_size;
 
-            if cell.west.is_none() {
-                crate::util::line(&mut data, image_dimensions, x1, y1, x1, y2, wall);
-            }
+        if cell.north.is_none() {
+            crate::util::line(&mut data, image_dimensions, x1, y1, x2, y1, wall);
+        }
 
-            if let Some(east) = cell.east {
-                if !cell.is_linked(east) {
-                    crate::util::line(&mut data, image_dimensions, x2, y1, x2, y2, wall);
-                }
-            } else {
+        if cell.west.is_none() {
+            crate::util::line(&mut data, image_dimensions, x1, y1, x1, y2, wall);
+        }
+
+        if let Some(east) = cell.east {
+            if !cell.is_linked(east) {
                 crate::util::line(&mut data, image_dimensions, x2, y1, x2, y2, wall);
             }
+        } else {
+            crate::util::line(&mut data, image_dimensions, x2, y1, x2, y2, wall);
+        }
 
-            if let Some(south) = cell.south {
-                if !cell.is_linked(south) {
-                    crate::util::line(&mut data, image_dimensions, x1, y2, x2, y2, wall);
-                }
-            } else {
+        if let Some(south) = cell.south {
+            if !cell.is_linked(south) {
                 crate::util::line(&mut data, image_dimensions, x1, y2, x2, y2, wall);
             }
+        } else {
+            crate::util::line(&mut data, image_dimensions, x1, y2, x2, y2, wall);
+        }
+    }
+
+    fn render_cell(
+        &self,
+        cell: &Cell,
+        cell_size: usize,
+        image_dimensions: (usize, usize),
+        image_center: (f64, f64),
+        wall: Color,
+        data: impl AsMut<[u8]>,
+    ) {
+        if self.polar {
+            self.render_cell_polar(cell, cell_size, image_dimensions, image_center, wall, data);
+        } else {
+            self.render_cell_orthogonal(cell, cell_size, image_dimensions, wall, data);
         }
     }
 
