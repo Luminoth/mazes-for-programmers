@@ -5,7 +5,7 @@ use std::path::Path;
 use rand::Rng;
 
 /// Reads a file, removing empty lines
-pub fn read_file_lines_no_empty(path: impl AsRef<Path>) -> io::Result<Vec<String>> {
+pub fn read_file_lines(path: impl AsRef<Path>) -> io::Result<Vec<String>> {
     let file = fs::File::open(path)?;
     let reader = io::BufReader::new(file);
 
@@ -14,7 +14,6 @@ pub fn read_file_lines_no_empty(path: impl AsRef<Path>) -> io::Result<Vec<String
         .lines()
         .map(Result::unwrap)
         .map(|x| x.trim().to_string())
-        .filter(|x| !x.is_empty())
         .collect();
 
     Ok(lines)

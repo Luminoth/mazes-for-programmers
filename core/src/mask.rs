@@ -6,7 +6,7 @@ use bit_vec::BitVec;
 use rand::Rng;
 use tracing::{debug, info};
 
-use crate::util::read_file_lines_no_empty;
+use crate::util::read_file_lines;
 
 /// Masks can be used to specify which cells in a grid are enabled or disabled
 #[derive(Debug, Clone)]
@@ -31,11 +31,25 @@ impl Mask {
         }
     }
 
+    fn remove_comments(lines: Vec<String>) -> Vec<String> {
+        lines
+            .iter()
+            .cloned()
+            .filter(|line| !line.starts_with('#'))
+            .collect()
+    }
+
     /// Creates a new mask from a file
     pub fn from_file(path: impl AsRef<Path>) -> io::Result<Self> {
         info!("Reading mask from file {:?} ...", path.as_ref());
 
-        let lines: Vec<String> = read_file_lines_no_empty(path)?;
+        let lines: Vec<String> = Self::remove_comments(
+            read_file_lines(path)?
+                .iter()
+                .cloned()
+                .filter(|x| !x.is_empty())
+                .collect(),
+        );
         if lines.is_empty() {
             return Err(io::Error::new(
                 io::ErrorKind::Other,
