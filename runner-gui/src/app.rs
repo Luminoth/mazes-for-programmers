@@ -21,6 +21,9 @@ use crate::texture::Texture;
 #[derive(Debug, Copy, Clone, PartialEq, EnumIter, Derivative, Display)]
 #[derivative(Default)]
 pub enum GeneratorType {
+    #[display(fmt = "None")]
+    None,
+
     #[derivative(Default)]
     #[display(fmt = "Binary Tree")]
     BinaryTree,
@@ -50,6 +53,7 @@ pub enum GeneratorType {
 impl GeneratorType {
     fn generator(&self) -> Box<dyn Generator> {
         match self {
+            GeneratorType::None => Box::new(NoneGenerator::default()),
             GeneratorType::BinaryTree => Box::new(BinaryTree::default()),
             GeneratorType::BinaryTreeParallel => Box::new(BinaryTreeParallel::default()),
             GeneratorType::Sidewinder => Box::new(Sidewinder::default()),
