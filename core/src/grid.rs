@@ -496,8 +496,9 @@ impl Grid {
         if self.polar {
             circle(
                 &mut data,
+                (image_width, image_height),
                 (image_center.0 as usize, image_center.1 as usize),
-                self.grid.len() * cell_size,
+                (self.grid.len() * cell_size) / 2,
                 wall,
             );
         }

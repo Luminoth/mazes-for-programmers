@@ -54,8 +54,49 @@ pub fn quad(
 }
 
 /// Renders a circle in the given data
-pub fn circle(mut _data: impl AsMut<[u8]>, _center: (usize, usize), _radius: usize, _color: Color) {
-    // TODO:
+// https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+// https://web.archive.org/web/20120422045142/https://banu.com/blog/7/drawing-circles/
+pub fn circle(
+    mut data: impl AsMut<[u8]>,
+    image_size: (usize, usize),
+    center: (usize, usize),
+    radius: usize,
+    color: Color,
+) {
+    let radius = radius as isize;
+    let center = (center.0 as isize, center.1 as isize);
+
+    let r2 = radius * radius;
+    let l = (radius as f64 * std::f64::consts::FRAC_PI_4.cos()) as isize;
+
+    for x in 0..=l {
+        let y = (r2 as f64 - (x * x) as f64).sqrt() as isize;
+
+        let x1 = center.0 + x;
+        let x2 = center.0 - x;
+        let y1 = center.1 + y;
+        let y2 = center.1 - y;
+
+        if x1 >= 0
+            && x1 < image_size.0 as isize
+            && x2 >= 0
+            && x2 < image_size.0 as isize
+            && y1 >= 0
+            && y1 < image_size.1 as isize
+            && y2 >= 0
+            && y2 < image_size.1 as isize
+        {
+            plot(data.as_mut(), image_size.0, x1 as usize, y1 as usize, color);
+            plot(data.as_mut(), image_size.0, x1 as usize, y2 as usize, color);
+            plot(data.as_mut(), image_size.0, x2 as usize, y1 as usize, color);
+            plot(data.as_mut(), image_size.0, x2 as usize, y2 as usize, color);
+
+            plot(data.as_mut(), image_size.0, y1 as usize, x1 as usize, color);
+            plot(data.as_mut(), image_size.0, y1 as usize, x2 as usize, color);
+            plot(data.as_mut(), image_size.0, y2 as usize, x1 as usize, color);
+            plot(data.as_mut(), image_size.0, y2 as usize, x2 as usize, color);
+        }
+    }
 }
 
 /// Renders a  line in the given data
