@@ -3,6 +3,8 @@ use crate::{Cell, CellHandle, Grid};
 
 use super::Generator;
 
+// TODO: this has broken :(
+
 /// Sidewinder maze generator
 /// Groups adjacent cells as a run before path carving
 /// Perfect - Yes
