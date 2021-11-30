@@ -124,42 +124,44 @@ pub fn circle(
 }
 
 /// Renders a line in the given data
+// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 pub fn line(
-    mut _data: impl AsMut<[u8]>,
-    _x1: usize,
-    _y1: usize,
-    _x2: usize,
-    _y2: usize,
-    _color: Color,
-) {
-    // TODO:
-}
-
-/// Renders a horizontal line in the given data
-pub fn horizontal_line(
     mut data: impl AsMut<[u8]>,
-    image_width: usize,
+    image_size: (usize, usize),
     x1: usize,
-    x2: usize,
-    y: usize,
-    color: Color,
-) {
-    for x in x1..=x2 {
-        plot(data.as_mut(), image_width, x, y, color);
-    }
-}
-
-/// Renders a vertical line in the given data
-pub fn vertical_line(
-    mut data: impl AsMut<[u8]>,
-    image_width: usize,
-    x: usize,
     y1: usize,
+    x2: usize,
     y2: usize,
     color: Color,
 ) {
-    for y in y1..=y2 {
-        plot(data.as_mut(), image_width, x, y, color);
+    let mut x1 = x1 as isize;
+    let x2 = x2 as isize;
+    let mut y1 = y1 as isize;
+    let y2 = y2 as isize;
+
+    let dx = (x2 - x1).abs();
+    let sx = if x1 < x2 { 1 } else { -1 };
+    let dy = -((y2 - y1).abs());
+    let sy = if y1 < y2 { 1 } else { -1 };
+    let mut err = dx + dy;
+
+    loop {
+        plot(data.as_mut(), image_size.0, x1 as usize, y1 as usize, color);
+
+        if x1 == x2 && y1 == y2 {
+            break;
+        }
+
+        let e2 = 2 * err;
+        if e2 >= dy {
+            err += dy;
+            x1 += sx;
+        }
+
+        if e2 <= dx {
+            err += dx;
+            y1 += sy;
+        }
     }
 }
 
@@ -173,12 +175,14 @@ fn plot(mut data: impl AsMut<[u8]>, image_width: usize, x: usize, y: usize, colo
     data[index + 3] = color.a;
 }
 
+/// Random coin flip
 pub fn coin() -> bool {
     let mut rng = rand::thread_rng();
 
     rng.gen_range(0..=1) == 0
 }
 
+/// Returns a random item from the given set
 pub fn sample<T>(items: &[T]) -> &T {
     let mut rng = rand::thread_rng();
 

@@ -7,7 +7,7 @@ use rand::Rng;
 use tracing::debug;
 
 use crate::solvers::Solver;
-use crate::util::{circle, horizontal_line, quad, vertical_line, Color};
+use crate::util::{circle, quad, Color};
 use crate::{Cell, CellHandle, Mask, Renderable};
 
 /// Grid-based maze data structure
@@ -378,7 +378,7 @@ impl Grid {
     ) {
         if self.polar {
             // cell angle
-            let theta = 2.0 * std::f64::consts::PI / self.grid[cell.row].len() as f64;
+            let theta = (2.0 * std::f64::consts::PI) / self.grid[cell.row].len() as f64;
 
             // inner / outer wall distance from center
             let inner_radius = (cell.row * cell_size) as f64;
@@ -400,13 +400,13 @@ impl Grid {
 
             if let Some(north) = cell.north {
                 if !cell.is_linked(north) {
-                    crate::util::line(&mut data, ax, ay, bx, by, wall);
+                    crate::util::line(&mut data, image_dimensions, ax, ay, bx, by, wall);
                 }
             }
 
             if let Some(east) = cell.east {
                 if !cell.is_linked(east) {
-                    crate::util::line(&mut data, cx, cy, dx, dy, wall);
+                    crate::util::line(&mut data, image_dimensions, cx, cy, dx, dy, wall);
                 }
             }
         } else {
@@ -416,27 +416,27 @@ impl Grid {
             let y2 = (cell.row + 1) * cell_size;
 
             if cell.north.is_none() {
-                horizontal_line(&mut data, image_dimensions.0, x1, x2, y1, wall);
+                crate::util::line(&mut data, image_dimensions, x1, y1, x2, y1, wall);
             }
 
             if cell.west.is_none() {
-                vertical_line(&mut data, image_dimensions.0, x1, y1, y2, wall);
+                crate::util::line(&mut data, image_dimensions, x1, y1, x1, y2, wall);
             }
 
             if let Some(east) = cell.east {
                 if !cell.is_linked(east) {
-                    vertical_line(&mut data, image_dimensions.0, x2, y1, y2, wall);
+                    crate::util::line(&mut data, image_dimensions, x2, y1, x2, y2, wall);
                 }
             } else {
-                vertical_line(&mut data, image_dimensions.0, x2, y1, y2, wall);
+                crate::util::line(&mut data, image_dimensions, x2, y1, x2, y2, wall);
             }
 
             if let Some(south) = cell.south {
                 if !cell.is_linked(south) {
-                    horizontal_line(&mut data, image_dimensions.0, x1, x2, y2, wall);
+                    crate::util::line(&mut data, image_dimensions, x1, y2, x2, y2, wall);
                 }
             } else {
-                horizontal_line(&mut data, image_dimensions.0, x1, x2, y2, wall);
+                crate::util::line(&mut data, image_dimensions, x1, y2, x2, y2, wall);
             }
         }
     }
@@ -451,33 +451,44 @@ impl Grid {
 
         // iamge width / height in pixels
         // (plus 2 for the edge walls)
-        let image_width = (cell_size * self.cols) + 2;
-        let image_height = (cell_size * self.rows) + 2;
+        let (image_width, image_height) = if self.polar {
+            let diameter = 2 * self.grid.len() * cell_size;
+            (diameter + 2, diameter + 2)
+        } else {
+            let width = self.cols * cell_size;
+            let height = self.rows * cell_size;
+            (width + 2, height + 2)
+        };
 
         // size in bytes (4 bytes per-pixel)
         let image_size = image_width * image_height * 4;
 
         let image_center = (image_width as f64 / 2.0, image_height as f64 / 2.0);
 
-        // init image to the background color for each cell
-        let mut data = vec![0; image_size];
-        for cell in self {
-            let cell_handle = cell.handle();
+        // init image to the default color
+        let default_color = if self.polar { 255 } else { 0 };
+        let mut data = vec![default_color; image_size];
 
-            let background = if color {
-                solver
-                    .map(|solver| solver.cell_background(cell_handle.row, cell_handle.col))
-                    .unwrap_or_else(|| Color::WHITE)
-            } else {
-                Color::WHITE
-            };
+        // for non-polar grids, color cells using the solver
+        if !self.polar {
+            for cell in self {
+                let cell_handle = cell.handle();
 
-            let x1 = cell.col * cell_size;
-            let y1 = cell.row * cell_size;
-            let x2 = (cell.col + 1) * cell_size;
-            let y2 = (cell.row + 1) * cell_size;
+                let background = if color {
+                    solver
+                        .map(|solver| solver.cell_background(cell_handle.row, cell_handle.col))
+                        .unwrap_or_else(|| Color::WHITE)
+                } else {
+                    Color::WHITE
+                };
 
-            quad(&mut data, image_width, x1, y1, x2, y2, background);
+                let x1 = cell.col * cell_size;
+                let y1 = cell.row * cell_size;
+                let x2 = (cell.col + 1) * cell_size;
+                let y2 = (cell.row + 1) * cell_size;
+
+                quad(&mut data, image_width, x1, y1, x2, y2, background);
+            }
         }
 
         // draw the cell walls
