@@ -32,12 +32,12 @@ impl Sidewinder {
 
         if should_close_out {
             let member_handle = *sample(run);
+            run.clear();
+
             let member = member_handle.get_cell(grid).unwrap();
             if let Some(north) = member.north {
                 return Some((member_handle, north));
             }
-
-            run.clear();
 
             None
         } else {
