@@ -212,6 +212,9 @@ impl RunnerApp {
             self.longest_path_time
         ));
         ui.label(format!("Solve time: {:.2}ms", self.solve_time));
+
+        let size = self.maze_texture.size();
+        ui.label(format!("Image size: {}x{}", size.x, size.y));
     }
 
     fn add_maze(&self, ui: &mut egui::Ui, texture_id: egui::TextureId) {

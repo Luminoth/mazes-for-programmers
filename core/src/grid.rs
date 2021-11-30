@@ -391,8 +391,8 @@ impl Grid {
             // cell walls
             let ax = (image_center.0 + (inner_radius * theta_ccw.cos())) as usize;
             let ay = (image_center.1 + (inner_radius * theta_ccw.sin())) as usize;
-            let bx = (image_center.0 + (outer_radius * theta_ccw.cos())) as usize;
-            let by = (image_center.1 + (outer_radius * theta_ccw.sin())) as usize;
+            let _bx = (image_center.0 + (outer_radius * theta_ccw.cos())) as usize;
+            let _by = (image_center.1 + (outer_radius * theta_ccw.sin())) as usize;
             let cx = (image_center.0 + (inner_radius * theta_cw.cos())) as usize;
             let cy = (image_center.1 + (inner_radius * theta_cw.sin())) as usize;
             let dx = (image_center.0 + (outer_radius * theta_cw.cos())) as usize;
@@ -400,7 +400,7 @@ impl Grid {
 
             if let Some(north) = cell.north {
                 if !cell.is_linked(north) {
-                    crate::util::line(&mut data, image_dimensions, ax, ay, bx, by, wall);
+                    crate::util::line(&mut data, image_dimensions, ax, ay, cx, cy, wall);
                 }
             }
 
@@ -443,10 +443,16 @@ impl Grid {
 
     pub(crate) fn render_internal(
         &self,
-        cell_size: usize,
+        mut cell_size: usize,
         solver: Option<&impl Solver>,
         color: bool,
     ) -> ((usize, usize), Vec<u8>) {
+        // polar grids need to be scaled down
+        // to match (roughly) the orthogonal grid image size
+        if self.polar {
+            cell_size = (cell_size as f64 / 2.0).ceil() as usize;
+        }
+
         let wall = Color::new(0, 0, 0, 255);
 
         // iamge width / height in pixels
@@ -509,7 +515,7 @@ impl Grid {
                 &mut data,
                 (image_width, image_height),
                 (image_center.0 as usize, image_center.1 as usize),
-                (self.grid.len() * cell_size) / 2,
+                self.grid.len() * cell_size,
                 wall,
             );
         }
