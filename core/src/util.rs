@@ -54,6 +54,7 @@ pub fn quad(
 }
 
 /// Renders a circle in the given data
+// https://stackoverflow.com/questions/38334081/howto-draw-circles-arcs-and-vector-graphics-in-sdl
 // https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 // https://web.archive.org/web/20120422045142/https://banu.com/blog/7/drawing-circles/
 pub fn circle(
@@ -66,40 +67,63 @@ pub fn circle(
     let radius = radius as isize;
     let center = (center.0 as isize, center.1 as isize);
 
-    let r2 = radius * radius;
-    let l = (radius as f64 * std::f64::consts::FRAC_PI_4.cos()) as isize;
+    let d = radius * 2;
 
-    for x in 0..=l {
-        let y = (r2 as f64 - (x * x) as f64).sqrt() as isize;
+    let mut x = radius - 1;
+    let mut y = 0;
+    let mut tx = 1;
+    let mut ty = 1;
+    let mut error = tx - d;
 
+    while x >= y {
         let x1 = center.0 + x;
         let x2 = center.0 - x;
         let y1 = center.1 + y;
         let y2 = center.1 - y;
 
-        if x1 >= 0
-            && x1 < image_size.0 as isize
-            && x2 >= 0
-            && x2 < image_size.0 as isize
-            && y1 >= 0
-            && y1 < image_size.1 as isize
-            && y2 >= 0
-            && y2 < image_size.1 as isize
+        // skip pixels that are out of bounds
+        if x1 < 0
+            || x1 >= image_size.0 as isize
+            || x2 < 0
+            || x2 >= image_size.0 as isize
+            || y1 < 0
+            || y1 >= image_size.1 as isize
+            || y2 < 0
+            || y2 >= image_size.1 as isize
         {
-            plot(data.as_mut(), image_size.0, x1 as usize, y1 as usize, color);
-            plot(data.as_mut(), image_size.0, x1 as usize, y2 as usize, color);
-            plot(data.as_mut(), image_size.0, x2 as usize, y1 as usize, color);
-            plot(data.as_mut(), image_size.0, x2 as usize, y2 as usize, color);
+            continue;
+        }
 
-            plot(data.as_mut(), image_size.0, y1 as usize, x1 as usize, color);
-            plot(data.as_mut(), image_size.0, y1 as usize, x2 as usize, color);
-            plot(data.as_mut(), image_size.0, y2 as usize, x1 as usize, color);
-            plot(data.as_mut(), image_size.0, y2 as usize, x2 as usize, color);
+        let x1 = x1 as usize;
+        let x2 = x2 as usize;
+        let y1 = y1 as usize;
+        let y2 = y2 as usize;
+
+        // each of the following renders an octant of the circle
+        plot(data.as_mut(), image_size.0, x1, y1, color);
+        plot(data.as_mut(), image_size.0, x1, y2, color);
+        plot(data.as_mut(), image_size.0, x2, y1, color);
+        plot(data.as_mut(), image_size.0, x2, y2, color);
+        plot(data.as_mut(), image_size.0, y1, x1, color);
+        plot(data.as_mut(), image_size.0, y1, x2, color);
+        plot(data.as_mut(), image_size.0, y2, x1, color);
+        plot(data.as_mut(), image_size.0, y2, x2, color);
+
+        if error <= 0 {
+            y += 1;
+            error += ty;
+            ty += 2;
+        }
+
+        if error > 0 {
+            x -= 1;
+            tx += 2;
+            error += tx - d;
         }
     }
 }
 
-/// Renders a  line in the given data
+/// Renders a line in the given data
 pub fn line(
     mut _data: impl AsMut<[u8]>,
     _x1: usize,
