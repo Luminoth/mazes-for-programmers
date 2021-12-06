@@ -26,7 +26,11 @@ pub trait Generator {
 
     /// Generates a new grid-based maze
     fn generate(&self, rows: usize, cols: usize, polar: bool) -> Grid {
-        let mut grid = Grid::new(rows, cols, polar);
+        let mut grid = if polar {
+            Grid::new_polar(rows, cols)
+        } else {
+            Grid::new_ortho(rows, cols)
+        };
 
         self.run(&mut grid);
 

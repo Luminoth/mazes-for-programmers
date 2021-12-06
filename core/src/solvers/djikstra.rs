@@ -134,14 +134,14 @@ impl Solver for Djikstra {
 
 impl Renderable for Djikstra {
     fn render_ascii(&self) -> String {
-        self.grid.render_ascii_internal(Some(self))
+        self.grid.render_ascii_solver(Some(self))
     }
 
     fn render(&self, cell_size: usize, color: bool) -> ((usize, usize), Vec<u8>) {
-        self.grid.render_internal(cell_size, Some(self), color)
+        self.grid.render_solver(cell_size, Some(self), color)
     }
 
     fn save_png(&self, path: &Path, cell_size: usize) -> io::Result<()> {
-        self.grid.save_png_internal(path, cell_size, Some(self))
+        self.grid.save_png_solver(path, cell_size, Some(self))
     }
 }
