@@ -22,28 +22,44 @@ impl Grid {
     pub fn new_ortho(rows: usize, cols: usize) -> Self {
         assert!(rows > 0 && cols > 0);
 
-        Self::Orthogonal(OrthogonalGrid::new(rows, cols))
+        let grid = OrthogonalGrid::new(rows, cols);
+        grid.init_grid();
+        grid.init_cells();
+
+        Self::Orthogonal(grid)
     }
 
     /// Creates a new orthogonal grid from the given mask
     pub fn from_ortho_mask(mask: Mask) -> Self {
         assert!(mask.rows > 0 && mask.cols > 0);
 
-        Self::Orthogonal(OrthogonalGrid::from_mask(mask))
+        let grid = OrthogonalGrid::from_mask(mask);
+        grid.init_grid();
+        grid.init_cells();
+
+        Self::Orthogonal(grid)
     }
 
     /// Creates a new polar grid of the given size
     pub fn new_polar(rows: usize, cols: usize) -> Self {
         assert!(rows > 0 && cols > 0);
 
-        Self::Polar(PolarGrid::new(rows, cols))
+        let grid = PolarGrid::new(rows, cols);
+        grid.init_grid();
+        grid.init_cells();
+
+        Self::Polar(grid)
     }
 
     /// Creates a new polar grid from the given mask
     pub fn from_polar_mask(mask: Mask) -> Self {
         assert!(mask.rows > 0 && mask.cols > 0);
 
-        Self::Polar(PolarGrid::from_mask(mask))
+        let grid = PolarGrid::from_mask(mask);
+        grid.init_grid();
+        grid.init_cells();
+
+        Self::Polar(grid)
     }
 
     /// The number of rows in the grid
@@ -363,40 +379,29 @@ pub struct OrthogonalGrid {
 
 impl OrthogonalGrid {
     fn new(rows: usize, cols: usize) -> Self {
-        let mut grid = Self {
+        Self {
             rows,
             cols,
             mask: None,
             grid: Vec::with_capacity(rows),
-        };
-
-        grid.init_grid();
-        grid.init_cells();
-
-        grid
+        }
     }
 
     fn from_mask(mask: Mask) -> Self {
         let rows = mask.rows;
-
-        let mut grid = Self {
+        Self {
             rows,
             cols: mask.cols,
             mask: Some(mask),
             grid: Vec::with_capacity(rows),
-        };
-
-        grid.init_grid();
-        grid.init_cells();
-
-        grid
+        }
     }
 
     fn init_grid(&mut self) {
         for row in 0..self.rows {
             let mut cells = Vec::with_capacity(self.cols);
             for col in 0..self.cols {
-                let cell = if let Some(mask) = &self.mask {
+                let cell = if let Some(mask) = self.mask {
                     if mask.get(row, col) {
                         Some(Cell::new_ortho(row, col))
                     } else {
@@ -439,7 +444,9 @@ impl OrthogonalGrid {
                             cell.west = west;
                             cell.east = east;
                         }
-                        _ => panic!("Invalid grid type"),
+                        Cell::Polar(cell) => {
+                            // TODO:
+                        }
                     }
                 }
             }
@@ -520,33 +527,35 @@ impl OrthogonalGrid {
         wall: Color,
         mut data: impl AsMut<[u8]>,
     ) {
-        let x1 = 1 + (cell.col() * cell_size);
-        let y1 = 1 + (cell.row() * cell_size);
-        let x2 = (cell.col() + 1) * cell_size;
-        let y2 = (cell.row() + 1) * cell_size;
+        if let Cell::Orthogonal(ortho) = cell {
+            let x1 = 1 + (cell.col() * cell_size);
+            let y1 = 1 + (cell.row() * cell_size);
+            let x2 = (cell.col() + 1) * cell_size;
+            let y2 = (cell.row() + 1) * cell_size;
 
-        if cell.north.is_none() {
-            crate::util::line(&mut data, image_dimensions, x1, y1, x2, y1, wall);
-        }
+            if ortho.north.is_none() {
+                crate::util::line(&mut data, image_dimensions, x1, y1, x2, y1, wall);
+            }
 
-        if cell.west.is_none() {
-            crate::util::line(&mut data, image_dimensions, x1, y1, x1, y2, wall);
-        }
+            if ortho.west.is_none() {
+                crate::util::line(&mut data, image_dimensions, x1, y1, x1, y2, wall);
+            }
 
-        if let Some(east) = cell.east {
-            if !cell.is_linked(east) {
+            if let Some(east) = ortho.east {
+                if !cell.is_linked(east) {
+                    crate::util::line(&mut data, image_dimensions, x2, y1, x2, y2, wall);
+                }
+            } else {
                 crate::util::line(&mut data, image_dimensions, x2, y1, x2, y2, wall);
             }
-        } else {
-            crate::util::line(&mut data, image_dimensions, x2, y1, x2, y2, wall);
-        }
 
-        if let Some(south) = cell.south {
-            if !cell.is_linked(south) {
+            if let Some(south) = ortho.south {
+                if !cell.is_linked(south) {
+                    crate::util::line(&mut data, image_dimensions, x1, y2, x2, y2, wall);
+                }
+            } else {
                 crate::util::line(&mut data, image_dimensions, x1, y2, x2, y2, wall);
             }
-        } else {
-            crate::util::line(&mut data, image_dimensions, x1, y2, x2, y2, wall);
         }
     }
 
@@ -622,85 +631,30 @@ pub struct PolarGrid {
 
 impl PolarGrid {
     fn new(rows: usize, cols: usize) -> Self {
-        let mut grid = Self {
+        Self {
             rows,
             cols,
             mask: None,
             grid: Vec::with_capacity(rows),
-        };
-
-        grid.init_grid();
-        grid.init_cells();
-
-        grid
+        }
     }
 
     fn from_mask(mask: Mask) -> Self {
         let rows = mask.rows;
-
-        let mut grid = Self {
+        Self {
             rows,
             cols: mask.cols,
             mask: Some(mask),
             grid: Vec::with_capacity(rows),
-        };
-
-        grid.init_grid();
-        grid.init_cells();
-
-        grid
+        }
     }
 
     fn init_grid(&mut self) {
-        for row in 0..self.rows {
-            let mut cells = Vec::with_capacity(self.cols);
-            for col in 0..self.cols {
-                let cell = if let Some(mask) = &self.mask {
-                    if mask.get(row, col) {
-                        Some(Cell::new_polar(row, col))
-                    } else {
-                        None
-                    }
-                } else {
-                    Some(Cell::new_polar(row, col))
-                };
-                cells.push(cell);
-            }
-            self.grid.push(cells);
-        }
+        // TODO:
     }
 
     fn init_cells(&mut self) {
         // TODO:
-        /*for row in 0..self.rows {
-            for col in 0..self.cols {
-                let north = if row > 0 {
-                    self.get(row - 1, col).map(|cell| cell.handle())
-                } else {
-                    None
-                };
-
-                let south = self.get(row + 1, col).map(|cell| cell.handle());
-
-                let west = if col > 0 {
-                    self.get(row, col - 1).map(|cell| cell.handle())
-                } else {
-                    None
-                };
-
-                let east = self.get(row, col + 1).map(|cell| cell.handle());
-
-                let cell = self.get_mut(row, col);
-                if let Some(cell) = cell {
-                    match cell {
-                        Cell::Polar(cell) => {
-                            // TODO:
-                        }
-                        _ => panic!("Invalid grid type"),
-                    }
-                }
-            }
-        }*/
     }
 
     fn render_ascii(&self, solver: Option<&impl Solver>) -> String {
@@ -737,7 +691,8 @@ impl PolarGrid {
         let dx = (image_center.0 + (outer_radius * theta_cw.cos())) as usize;
         let dy = (image_center.1 + (outer_radius * theta_cw.sin())) as usize;
 
-        if let Some(north) = cell.north {
+        // TODO:
+        /*if let Some(north) = cell.north {
             if !cell.is_linked(north) {
                 crate::util::line(&mut data, image_dimensions, ax, ay, cx, cy, wall);
             }
@@ -747,7 +702,7 @@ impl PolarGrid {
             if !cell.is_linked(east) {
                 crate::util::line(&mut data, image_dimensions, cx, cy, dx, dy, wall);
             }
-        }
+        }*/
     }
 
     fn render(
